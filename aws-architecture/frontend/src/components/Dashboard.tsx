@@ -11,7 +11,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   return (
     <div style={styles.container}>
       <header style={styles.header}>
-        <h1>Udodiri Social Club</h1>
+        <div style={styles.headerLeft}>
+          <img 
+            src="https://i.postimg.cc/bJQgWxd8/udodiri-young-social-club.jpg" 
+            alt="Udodiri Social Club Logo" 
+            style={styles.headerLogo}
+          />
+          <h1>Udodiri Social Club</h1>
+        </div>
         <div style={styles.userInfo}>
           <span>Welcome, {user?.email || 'Member'}</span>
           <button onClick={onLogout} style={styles.logoutButton}>
@@ -69,6 +76,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  headerLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '15px',
+  },
+  headerLogo: {
+    width: '50px',
+    height: '50px',
+    objectFit: 'cover',
+    borderRadius: '50%',
+    border: '2px solid #fff',
   },
   userInfo: {
     display: 'flex',
