@@ -1,0 +1,62 @@
+name: Deploy Udodiri Social Club
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install AWS CDK
+      run: npm install -g aws-cdk
+
+    - name: Install Dependencies
+      run: |
+        if [ -f "aws-architecture/package.json" ]; then
+          cd aws-architecture
+          npm install
+          cd ..
+        fi
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Deploy Infrastructure (CDK)
+      run: |
+        if [ -d "aws-architecture" ]; then
+          cd aws-architecture
+          npx cdk deploy --require-approval never --all
+          cd ..
+        fi
+
+    - name: Build Frontend
+      run: |
+        # If you have a specific build command for your frontend, add it here
+        # For now, we assume the static files are ready or built in previous steps
+        echo "Frontend build step completed"
+
+    - name: Deploy to S3
+      run: |
+        # Update 'your-bucket-name' with the actual bucket output from CDK if needed
+        # Or use the bucket name defined in your CDK stack
+        if [ -d "aws-architecture" ]; then
+          # Example: Sync current directory to S3 (adjust source path if your build output is elsewhere)
+          # aws s3 sync ./dist s3://udodiri-social-bucket --delete 
+          echo "Syncing files to S3..."
+          # Replace BUCKET_NAME with your actual bucket name from CDK outputs
+          # aws s3 sync . s3://${BUCKET_NAME} --delete
+        fi
