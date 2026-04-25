@@ -22,10 +22,10 @@ jobs:
 
     - name: Install Dependencies
       run: |
-        if [ -f "aws-architecture/package.json" ]; then
-          cd aws-architecture
+        if [ -f "aws-architecture/infrastructure/package.json" ]; then
+          cd aws-architecture/infrastructure
           npm install
-          cd ..
+          cd ../..
         fi
 
     - name: Configure AWS Credentials
@@ -37,10 +37,10 @@ jobs:
 
     - name: Deploy Infrastructure (CDK)
       run: |
-        if [ -d "aws-architecture" ]; then
-          cd aws-architecture
+        if [ -d "aws-architecture/infrastructure" ]; then
+          cd aws-architecture/infrastructure
           npx cdk deploy --require-approval never --all
-          cd ..
+          cd ../..
         fi
 
     - name: Build Frontend
@@ -53,7 +53,7 @@ jobs:
       run: |
         # Update 'your-bucket-name' with the actual bucket output from CDK if needed
         # Or use the bucket name defined in your CDK stack
-        if [ -d "aws-architecture" ]; then
+        if [ -d "aws-architecture/frontend" ]; then
           # Example: Sync current directory to S3 (adjust source path if your build output is elsewhere)
           # aws s3 sync ./dist s3://udodiri-social-bucket --delete 
           echo "Syncing files to S3..."
