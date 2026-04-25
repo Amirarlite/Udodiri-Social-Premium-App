@@ -10,7 +10,5 @@ new UdodiriSocialClubStack(app, 'UdodiriSocialClubStack', {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION || 'us-east-1',
   },
-  description: 'Udodiri Social Club Infrastructure (PWA + API)',
+  description: 'Udodiri Young Social Club Infrastructure',
 });
-
-app.synth();
