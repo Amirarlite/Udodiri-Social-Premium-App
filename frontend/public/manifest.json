@@ -1,0 +1,13 @@
+{
+  "name": "Udodiri Social Club",
+  "short_name": "Udodiri",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#4C1D95",
+  "theme_color": "#F59E0B",
+  "icons": [{
+    "src": "https://i.postimg.cc/bJQgWxd8/udodiri-young-social-club.jpg",
+    "sizes": "192x192",
+    "type": "image/jpeg"
+  }]
+}

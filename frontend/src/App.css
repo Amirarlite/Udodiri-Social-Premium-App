@@ -1,0 +1,6 @@
+:root { --primary: #4C1D95; --gold: #F59E0B; }
+body { margin: 0; font-family: sans-serif; background: #1F2937; color: white; }
+.app-container { max-width: 480px; margin: 0 auto; padding: 20px; text-align: center; }
+.logo { width: 120px; border-radius: 50%; border: 3px solid var(--gold); }
+.btn-primary { background: var(--primary); color: white; padding: 15px; border: none; border-radius: 30px; width: 100%; font-size: 16px; margin-top: 20px; }
+.card { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin-top: 20px; border: 1px solid var(--gold); }
