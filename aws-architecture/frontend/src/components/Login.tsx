@@ -28,6 +28,13 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
 
   return (
     <div style={styles.container}>
+      <div style={styles.logoContainer}>
+        <img 
+          src="https://i.postimg.cc/bJQgWxd8/udodiri-young-social-club.jpg" 
+          alt="Udodiri Social Club Logo" 
+          style={styles.logo}
+        />
+      </div>
       <h1 style={styles.title}>Udodiri Social Club</h1>
       <form onSubmit={handleSubmit} style={styles.form}>
         <input
@@ -63,6 +70,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '8px',
     boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
     backgroundColor: '#fff',
+  },
+  logoContainer: {
+    textAlign: 'center',
+    marginBottom: '20px',
+  },
+  logo: {
+    width: '120px',
+    height: '120px',
+    objectFit: 'cover',
+    borderRadius: '50%',
+    border: '3px solid #007bff',
   },
   title: {
     textAlign: 'center',
