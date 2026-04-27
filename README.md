@@ -118,3 +118,31 @@ For issues or questions:
 **Built with ❤️ for Udodiri Young Social Club**
 
 *100% AWS Native • Zero Third-Party Platforms • Low Cost • Production Ready*
+
+## Project Structure
+
+- `frontend/` - React/TypeScript frontend application
+- `aws-architecture/` - AWS CDK infrastructure code
+- `docs/code-templates/` - Code templates and implementation guides
+- `deploy.sh` - Deployment script
+
+## Getting Started
+
+1. Install dependencies: `npm install`
+2. Review code templates in `docs/code-templates/`
+3. Deploy infrastructure: `./deploy.sh`
+
+
+## Project Structure
+
+- `frontend/` - React/TypeScript frontend application
+- `aws-architecture/` - AWS CDK infrastructure code
+- `docs/code-templates/` - Code templates and implementation guides
+- `deploy.sh` - Deployment script
+
+## Getting Started
+
+1. Install dependencies: `npm install`
+2. Review code templates in `docs/code-templates/`
+3. Deploy infrastructure: `./deploy.sh`
+

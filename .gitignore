@@ -1,32 +1,27 @@
-```
 # Dependencies
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Build outputs
-dist/
-build/
-target/
+# Production builds
+/build
+/dist
+/.next/
+/out/
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-.ENV
+# Environment variables
 .env
 .env.local
-.env.*
-.venv/
-venv/
-ENV/
-.env.dill
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Logs
-*.log
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # OS generated files
 .DS_Store
@@ -37,28 +32,29 @@ ENV/
 ehthumbs.db
 Thumbs.db
 
-# Editor files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# AWS
+.aws/
+cdk.out/
 
-# Compressed files
-*.zip
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.gz
-*.rar
-*.7z
+# Logs
+*.log
+logs/
 
-# Coverage
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
 coverage/
-htmlcov/
-.coverage
+*.lcov
 
-# Temporary files
-*.tmp
-*.temp
-```
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
