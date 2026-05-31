@@ -1,148 +1,150 @@
-# Udodiri Young Social Club - Complete Application
+# Udodiri Social Club — Cloudflare Platform Edition
 
 ![Udodiri Social Club Logo](https://i.postimg.cc/bJQgWxd8/udodiri-young-social-club.jpg)
 
-## 🚀 Quick Start - One-Click Deployment
+Complete social club management app, **re-architected for Cloudflare** — one platform for everything.
 
-This repository contains a complete, production-ready social club management application with **one-click AWS deployment**.
+## Architecture
 
-### Prerequisites
+| Component | Cloudflare Service | Purpose |
+|---|---|---|
+| **Frontend** | Pages (Assets) | React SPA, served globally |
+| **Backend API** | Workers + Hono | REST API with JWT auth |
+| **Database** | D1 (SQLite) | Users, meetings, events, financials |
+| **Real-time Chat** | Durable Objects | WebSocket chat rooms |
+| **Auth** | JWT (Worker-side) | Register/login with hashed passwords |
 
-- AWS Account with admin access
-- Node.js 18+ installed
-- AWS CLI configured (`aws configure`)
-- AWS CDK installed (`npm install -g aws-cdk`)
+**Zero external platforms.** Everything runs on Cloudflare.
 
-### Deploy in 3 Steps
+## Features
 
-```bash
-# 1. Navigate to the project directory
-cd /workspace
+- 🔐 JWT authentication (register + login)
+- 📢 Announcement channel (feed + broadcasts)
+- 💬 Real-time member chat (Durable Objects)
+- 👥 Member activity feed
+- 📋 Meeting minutes with action items
+- 🗓️ Event calendar
+- 💰 Financial tracking (admin only)
+- ⭐ Premium subscriptions (Paystack/Flutterwave)
 
-# 2. Run the one-click deployment script
-./deploy.sh
+## Prerequisites
 
-# 3. Wait ~15-20 minutes for deployment to complete
-```
+- Node.js 18+
+- Cloudflare account
+- Wrangler CLI (`npm install -g wrangler`)
 
-That's it! The script handles everything automatically.
-
-## 📋 What Gets Deployed
-
-The deployment script creates a complete serverless architecture on AWS:
-
-- ✅ **6 DynamoDB Tables** - Database for users, meetings, announcements, calendar, subscriptions, financials
-- ✅ **6 Lambda Functions** - Serverless backend API
-- ✅ **API Gateway** - REST API with Cognito authentication
-- ✅ **Cognito User Pool** - Secure user authentication
-- ✅ **S3 + CloudFront** - Frontend hosting with global CDN
-- ✅ **Secrets Manager** - Secure storage for API keys
-
-## 💰 Cost
-
-**Estimated cost: ~$10-15/month** (or **FREE** for first 12 months with AWS Free Tier!)
-
-See [DEPLOYMENT_GUIDE.md](aws-architecture/DEPLOYMENT_GUIDE.md) for detailed cost breakdown and optimization tips.
-
-## 🎨 Features
-
-- 🔐 Secure authentication with AWS Cognito
-- 📅 Meeting minutes management with Google Docs integration
-- 📢 Announcements system (in-app, Gmail, chat)
-- 🗓️ Event calendar with Google Calendar sync
-- 💳 Premium subscriptions via Paystack & Flutterwave
-- 📊 Financial tracking (dues, levies, funds, fines)
-- 📱 Responsive design for mobile and desktop
-- 🌍 Global CDN for fast loading worldwide
-
-## 📁 Project Structure
-
-```
-/workspace/
-├── deploy.sh                          # ⭐ One-click deployment script
-├── README.md                          # This file
-├── aws-architecture/
-│   ├── DEPLOYMENT_GUIDE.md           # Detailed deployment guide
-│   ├── README.md                     # Architecture documentation
-│   ├── infrastructure/               # AWS CDK infrastructure code
-│   │   ├── bin/
-│   │   ├── lib/
-│   │   └── lambda/                   # Backend Lambda functions
-│   └── frontend/                     # React frontend
-│       ├── src/
-│       │   ├── components/
-│       │   ├── hooks/
-│       │   └── config/
-│       └── public/
-└── Udodiri-social-club-app.txt       # Original app specification
-```
-
-## 🔐 Post-Deployment Setup
-
-After deployment completes:
-
-1. **Update Secrets Manager** with your real credentials:
-   - Google OAuth credentials
-   - Paystack API keys
-   - Flutterwave API keys
-
-2. **Configure Google OAuth Console**:
-   - Add your CloudFront domain as authorized redirect URI
-
-3. **Visit your app** at the URL provided in the deployment output!
-
-Detailed instructions are in [DEPLOYMENT_GUIDE.md](aws-architecture/DEPLOYMENT_GUIDE.md).
-
-## 🧹 Cleanup
-
-To avoid charges, delete all resources when done:
+## Quick Start
 
 ```bash
-cd aws-architecture/infrastructure
-cdk destroy --all --force
+# 1. Install dependencies
+npm install
+
+# 2. Create D1 database
+wrangler d1 create udodiri-db
+
+# 3. Update wrangler.jsonc with your D1 database_id
+#    Replace "PLACEHOLDER_DB_ID" with the real id
+
+# 4. Run migrations
+wrangler d1 execute udodiri-db --file=./schema.sql --remote
+
+# 5. Develop locally
+npm run dev
+
+# 6. Deploy
+npm run deploy
 ```
 
-## 🆘 Troubleshooting
+## Project Structure
 
-See the [DEPLOYMENT_GUIDE.md](aws-architecture/DEPLOYMENT_GUIDE.md) for common issues and solutions.
+```
+udodiri-social-app/
+├── wrangler.jsonc          # Cloudflare config (Worker + Pages assets)
+├── schema.sql              # D1 database schema
+├── worker/
+│   ├── src/
+│   │   └── index.ts        # Hono API + Durable Object (chat)
+│   ├── package.json
+│   └── tsconfig.json
+├── frontend/
+│   ├── src/
+│   │   ├── main.tsx
+│   │   ├── App.tsx         # Router + layout
+│   │   ├── index.css       # Full CSS (dark theme)
+│   │   ├── context/
+│   │   │   └── AuthContext.tsx
+│   │   ├── hooks/
+│   │   │   └── api.ts       # Axios instance
+│   │   ├── components/
+│   │   │   ├── Login.tsx
+│   │   │   └── Sidebar.tsx
+│   │   └── screens/
+│   │       ├── Dashboard.tsx
+│   │       ├── Announcements.tsx
+│   │       ├── MemberChat.tsx
+│   │       ├── Activity.tsx
+│   │       ├── Meetings.tsx
+│   │       ├── Calendar.tsx
+│   │       ├── Financials.tsx
+│   │       └── Subscription.tsx
+│   ├── index.html
+│   ├── vite.config.ts
+│   ├── package.json
+│   └── tsconfig.json
+└── package.json
+```
 
-## 📞 Support
+## API Endpoints
 
-For issues or questions:
-- Check AWS CloudWatch Logs for Lambda errors
-- Review CloudFormation Events for deployment issues
-- Verify AWS CLI credentials with `aws sts get-caller-identity`
+### Auth
+- `POST /api/auth/register` — Create account
+- `POST /api/auth/login` — Login, returns JWT
+- `GET /api/auth/me` — Current user (auth required)
+
+### Announcements
+- `GET /api/announcements` — List all
+- `POST /api/announcements` — Create (auth required)
+- `DELETE /api/announcements/:id` — Delete (admin only)
+
+### Chat
+- `GET /api/chat/:roomId/messages` — Get messages
+- `POST /api/chat/:roomId/messages` — Send message (auth required)
+
+### Activity
+- `GET /api/activity` — Member activity feed
+
+### Meetings
+- `GET /api/meetings` — List meetings
+- `POST /api/meetings` — Create meeting (auth required)
+- `POST /api/meetings/:id/action-items` — Add action item
+
+### Calendar
+- `GET /api/calendar` — List events
+- `POST /api/calendar` — Create event (auth required)
+- `DELETE /api/calendar/:id` — Delete event
+
+### Financials (Admin/Treasurer)
+- `GET /api/financials` — List transactions
+- `POST /api/financials` — Record transaction
+
+### Subscriptions
+- `GET /api/subscriptions` — Current subscription
+- `POST /api/subscriptions/premium` — Initiate upgrade
+- `POST /api/subscriptions/verify` — Verify payment
+
+## Cost
+
+Cloudflare Workers/D1/Pages: **~$0–5/month** for typical social club usage. Generous free tier included.
+
+## Cleanup
+
+```bash
+# Delete Cloudflare resources
+wrangler delete
+wrangler d1 delete udodiri-db
+```
 
 ---
 
-**Built with ❤️ for Udodiri Young Social Club**
-
-*100% AWS Native • Zero Third-Party Platforms • Low Cost • Production Ready*
-
-## Project Structure
-
-- `frontend/` - React/TypeScript frontend application
-- `aws-architecture/` - AWS CDK infrastructure code
-- `docs/code-templates/` - Code templates and implementation guides
-- `deploy.sh` - Deployment script
-
-## Getting Started
-
-1. Install dependencies: `npm install`
-2. Review code templates in `docs/code-templates/`
-3. Deploy infrastructure: `./deploy.sh`
-
-
-## Project Structure
-
-- `frontend/` - React/TypeScript frontend application
-- `aws-architecture/` - AWS CDK infrastructure code
-- `docs/code-templates/` - Code templates and implementation guides
-- `deploy.sh` - Deployment script
-
-## Getting Started
-
-1. Install dependencies: `npm install`
-2. Review code templates in `docs/code-templates/`
-3. Deploy infrastructure: `./deploy.sh`
-
+Built with ❤️ for Udodiri Young Social Club
+**100% Cloudflare • Zero Third-Party Platforms • Low Cost • Production Ready**

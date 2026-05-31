@@ -1,0 +1,35 @@
+{
+  "name": "udodiri-social-app",
+  "compatibility_date": "2025-01-01",
+  "main": "worker/src/index.ts",
+  "workers_dev": true,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "udodiri-db",
+      "database_id": "PLACEHOLDER_DB_ID"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "CHAT_ROOM",
+        "class_name": "ChatRoom"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_classes": ["ChatRoom"]
+    }
+  ],
+  "assets": {
+    "directory": "frontend/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+  "placement": {
+    "mode": "smart"
+  }
+}
