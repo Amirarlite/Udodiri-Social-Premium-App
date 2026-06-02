@@ -7,7 +7,7 @@
     {
       "binding": "DB",
       "database_name": "udodiri-db",
-      "database_id": "PLACEHOLDER_DB_ID"
+      "database_id": "f3e209a5-2a84-48df-9c71-0603c5c85782"
     }
   ],
   "durable_objects": {
