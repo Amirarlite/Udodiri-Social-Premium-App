@@ -1,0 +1,22 @@
+{
+  "name": "udodiri-social-app",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "workspaces": [
+    "worker",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:worker\" \"npm run dev:frontend\"",
+    "dev:worker": "wrangler dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "deploy": "npm run build && wrangler deploy",
+    "db:migrate": "wrangler d1 execute udodiri-db --file=./schema.sql"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "wrangler": "^4.0.0"
+  }
+}

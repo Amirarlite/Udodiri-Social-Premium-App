@@ -1,0 +1,10 @@
+{
+  "name": "udodiri-worker",
+  "version": "2.0.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "dependencies": {
+    "hono": "^4.7.0",
+    "@cloudflare/workers-types": "^4.20250129.0"
+  }
+}
