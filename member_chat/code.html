@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Member Chat | Udodiri Young Social Club</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-on-surface": "#283044",
+                        "tertiary-fixed": "#ffe088",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed-dim": "#ffb3b0",
+                        "tertiary-container": "#cba72f",
+                        "on-surface-variant": "#e3bebb",
+                        "outline-variant": "#5b403f",
+                        "on-tertiary-container": "#4e3d00",
+                        "on-tertiary-fixed": "#241a00",
+                        "on-primary": "#68000f",
+                        "primary": "#ffb3b0",
+                        "primary-fixed": "#ffdad8",
+                        "surface-container-high": "#222a3d",
+                        "surface-container-low": "#131b2e",
+                        "surface-container-lowest": "#060e20",
+                        "surface-container": "#171f33",
+                        "on-secondary-fixed": "#000767",
+                        "tertiary": "#e9c349",
+                        "error-container": "#93000a",
+                        "surface-tint": "#ffb3b0",
+                        "tertiary-fixed-dim": "#e9c349",
+                        "surface": "#0b1326",
+                        "on-primary-fixed": "#410006",
+                        "surface-container-highest": "#2d3449",
+                        "secondary": "#bdc2ff",
+                        "on-primary-fixed-variant": "#930019",
+                        "surface-dim": "#0b1326",
+                        "secondary-fixed": "#e0e0ff",
+                        "inverse-surface": "#dae2fd",
+                        "on-secondary-container": "#a8afff",
+                        "primary-container": "#be1e2d",
+                        "on-tertiary": "#3c2f00",
+                        "on-secondary": "#1b247f",
+                        "error": "#ffb4ab",
+                        "on-secondary-fixed-variant": "#343d96",
+                        "on-tertiary-fixed-variant": "#574500",
+                        "on-primary-container": "#ffd3d1",
+                        "background": "#0b1326",
+                        "outline": "#aa8987",
+                        "inverse-primary": "#b91a2a",
+                        "on-error": "#690005",
+                        "on-surface": "#dae2fd",
+                        "secondary-fixed-dim": "#bdc2ff",
+                        "on-background": "#dae2fd",
+                        "surface-variant": "#2d3449",
+                        "surface-bright": "#31394d",
+                        "secondary-container": "#343d96"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "margin-mobile": "16px",
+                        "xl": "64px",
+                        "xs": "8px",
+                        "lg": "40px",
+                        "sm": "16px",
+                        "base": "4px",
+                        "md": "24px",
+                        "margin-desktop": "32px"
+                    },
+                    "fontFamily": {
+                        "title-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "title-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .chat-container::-webkit-scrollbar {
+            width: 4px;
+        }
+        .chat-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #2d3449;
+            border-radius: 10px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-lg overflow-hidden h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-margin-mobile h-16 w-full bg-surface dark:bg-surface-dim border-b border-surface-variant dark:border-outline-variant shrink-0 z-50">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline">
+<img alt="Club Logo" class="w-full h-full object-cover" data-alt="A sophisticated club logo designed with golden minimalist linework on a deep navy background. The emblem features an abstract phoenix rising, symbolizing legacy and community. The style is premium and professional, using high-contrast lighting to highlight metallic textures and deep shadows consistent with an exclusive membership lounge aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRbFVy5HEUfW-W3DJXDyepgDkJTYO5zg_RBV9QbRRXYs4ekl3or4bVwsxD4JEomyWBj5DrvfHd9bsi5IwyHvr8R7Z_VzlPt2EnQYNuC1-Nq88--xl-9AcdevvU8xqj3kq883D3sYALuMav8v0PYNWwS7lmBrsfSh9RlnEfd63yIktDyeTI2gtdNLrIkD27WybhVbu5J-d0WbECYA6ol4T6thSCHTktKmJPKFWjUPjAbgr7Ho4B-K-Adwq6xsp9uOsS2XAc0s9tSQ6G"/>
+</div>
+<div>
+<h1 class="font-title-md text-title-md font-bold text-primary">Udodiri Young Social Club</h1>
+<div class="flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">14 Members Online</span>
+</div>
+</div>
+</div>
+<div class="cursor-pointer active:opacity-80 hover:bg-surface-container-high transition-colors p-2 rounded-full">
+<span class="material-symbols-outlined text-primary" data-icon="notifications">notifications</span>
+</div>
+</header>
+<!-- Main Chat Canvas -->
+<main class="flex-1 overflow-y-auto chat-container flex flex-col px-margin-mobile py-md space-y-md">
+<!-- Date Divider -->
+<div class="flex justify-center my-sm">
+<span class="bg-surface-container text-on-surface-variant font-label-caps text-label-caps px-4 py-1 border border-outline-variant rounded-full">TODAY</span>
+</div>
+<!-- Others Message -->
+<div class="flex items-end gap-xs max-w-[85%]">
+<div class="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-outline-variant">
+<img alt="Member Avatar" class="w-full h-full object-cover" data-alt="Close-up portrait of a professional male club member in a sharp dark blazer, looking confidently at the camera. The background is a softly blurred high-end lounge with warm amber lighting. The color palette emphasizes deep navy and mahogany tones with professional lighting and high-contrast shadows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiE6m9ehD2059C9ebNDN_RB0kCrozeFeUMwA5ef36lr5uCBhR-OgPqqb68obSDNUy2WGeGIMGBeSFnreSVnMKZ-L17-iM4auTXwGhvd1d32WdJayr9YundUoYRsz6ycF0kKWXZkj73_y3MfJeqNZs6i93M-YKI3Q6YqfNnW5mRJj0TmCd7nHkaI0tlhoXMe2knRq8lVR7yZxrkNAUu_NJOYGWFMOQflMEURv76Q2ZWgI2D4W_J5-1XwwvLr0BGLSnHk7MNjQWkPHA2"/>
+</div>
+<div class="flex flex-col gap-base">
+<span class="font-label-caps text-label-caps text-on-surface-variant ml-sm">Chinedu Okafor</span>
+<div class="bg-secondary-container text-on-secondary-container p-sm rounded-xl rounded-bl-none border border-outline-variant">
+<p class="font-body-sm text-body-sm">Good morning everyone. Has the agenda for Friday's investment summit been finalized yet?</p>
+</div>
+<span class="text-[10px] text-on-surface-variant ml-sm">09:12 AM</span>
+</div>
+</div>
+<!-- Others Message -->
+<div class="flex items-end gap-xs max-w-[85%]">
+<div class="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-outline-variant">
+<img alt="Member Avatar" class="w-full h-full object-cover" data-alt="A professional female corporate executive with a warm smile, wearing a designer business suit. She is photographed in a modern office environment with soft, high-key lighting. The aesthetic is clean, modern, and high-end, using a palette of slate greys and professional blues." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgSrk4UC2YuxMxTimXEPpPslkcXSzQdusF_LcgPmdDQVuOUDRrFXFQ3hCoyij_Z4PwAXzZwiTRHz9jcihoMW4nbyF2hwuorUAHWY4Ay1UzbUJYvi9BvpavtQlxq3SwwnPy8pJFib40C2q298vV_BGMrFUXwlNtCxg0bNnM60i_sNZL0wTN89JjiYq4zihmEGYpck4uuSKH5YVtJ-F3G27Bms-vjZqs2vBJ-62I5KZm1FgKc10H4kKDBliOEXMWOhpDTVTEi-tKLlyy"/>
+</div>
+<div class="flex flex-col gap-base">
+<span class="font-label-caps text-label-caps text-on-surface-variant ml-sm">Amara Bello</span>
+<div class="bg-secondary-container text-on-secondary-container p-sm rounded-xl rounded-bl-none border border-outline-variant">
+<p class="font-body-sm text-body-sm">Hi Chinedu! Yes, the Secretary sent out the draft last night. It's in the Meetings tab.</p>
+</div>
+<span class="text-[10px] text-on-surface-variant ml-sm">09:14 AM</span>
+</div>
+</div>
+<!-- My Message -->
+<div class="flex flex-col items-end gap-base ml-auto max-w-[85%]">
+<div class="bg-primary-container text-on-primary-container p-sm rounded-xl rounded-br-none border border-outline-variant shadow-lg shadow-primary-container/20">
+<p class="font-body-sm text-body-sm">Thanks Amara. I'll take a look now. Are we still meeting at the lounge at 6 PM?</p>
+</div>
+<div class="flex items-center gap-xs mr-sm">
+<span class="text-[10px] text-on-surface-variant">09:16 AM</span>
+<span class="material-symbols-outlined text-[12px] text-tertiary" style="font-variation-settings: 'FILL' 1;">done_all</span>
+</div>
+</div>
+<!-- Others Message (Multi-line) -->
+<div class="flex items-end gap-xs max-w-[85%]">
+<div class="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-outline-variant">
+<img alt="Member Avatar" class="w-full h-full object-cover" data-alt="Headshot of a middle-aged man with a distinguished beard and professional attire, symbolizing established club leadership. The lighting is dramatic and low-key, highlighting deep charcoal and navy colors. The mood is serious, prestigious, and corporate." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBg5qYsoRUWUPJ3yDKXJY6_mCGh7QEyjBRRtCmuypwj4_jOc9b1pWUEgHu1AybCsBAqgW3rtONhpxzFJzBr7cuCCFzK582qfT0PvCDXyZ6G1rtI7kT4PuEK-hqS3Ob1tLhKTkZql-0P0EABMG8GLHFatZb22FbONbr3kEoKqAodNNTMegWXYiJV34TJQ6dqVeVUCvmuxHSiqMyf0k5Dsr0tLC7gjW0A4SRimE7TOiJ9csiNWdsOtu4bwA9WaN8WEl-ffTHKgQxjm1pe"/>
+</div>
+<div class="flex flex-col gap-base">
+<span class="font-label-caps text-label-caps text-on-surface-variant ml-sm">Tunde Williams</span>
+<div class="bg-secondary-container text-on-secondary-container p-sm rounded-xl rounded-bl-none border border-outline-variant">
+<p class="font-body-sm text-body-sm">I'll be there. I have some updates regarding the new community outreach initiative to share with the committee.</p>
+</div>
+<span class="text-[10px] text-on-surface-variant ml-sm">09:20 AM</span>
+</div>
+</div>
+<!-- System Message -->
+<div class="flex justify-center">
+<div class="flex items-center gap-xs py-base px-sm bg-surface-container-high rounded border border-outline-variant opacity-80">
+<span class="material-symbols-outlined text-[14px] text-tertiary">info</span>
+<span class="font-label-caps text-[10px] text-on-surface">DR. KELVIN JOINED THE CHAT</span>
+</div>
+</div>
+<div class="h-20 shrink-0"></div> <!-- Spacer for footer -->
+</main>
+<!-- Sticky Chat Input -->
+<section class="sticky bottom-20 w-full px-margin-mobile pb-sm z-40">
+<div class="bg-surface-container-highest border border-outline-variant rounded-full p-1 flex items-center shadow-2xl">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+</button>
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-on-surface-variant/50 font-body-sm px-sm" placeholder="Type your message..." type="text"/>
+<button class="bg-primary text-on-primary w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-90 hover:brightness-110">
+<span class="material-symbols-outlined" data-icon="send">send</span>
+</button>
+</div>
+</section>
+<!-- BottomNavBar -->
+<nav class="flex justify-around items-center h-20 w-full px-xs pb-safe bg-surface-container dark:bg-surface-container-low border-t border-surface-variant dark:border-outline-variant fixed bottom-0 z-50">
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-caps text-label-caps mt-1">Dashboard</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95">
+<span class="material-symbols-outlined" data-icon="campaign">campaign</span>
+<span class="font-label-caps text-label-caps mt-1">Alerts</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-4 py-1 scale-95 transition-transform active:scale-90">
+<span class="material-symbols-outlined" data-icon="chat">chat</span>
+<span class="font-label-caps text-label-caps">Chat</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95">
+<span class="material-symbols-outlined" data-icon="event">event</span>
+<span class="font-label-caps text-label-caps mt-1">Meetings</span>
+</div>
+</nav>
+<script>
+        // Simple micro-interaction for the chat send button
+        const input = document.querySelector('input');
+        const sendBtn = document.querySelector('button[data-icon="send"]').parentElement;
+
+        sendBtn.addEventListener('click', () => {
+            if (input.value.trim() !== "") {
+                input.value = "";
+                // Visual feedback
+                sendBtn.innerHTML = '<span class="material-symbols-outlined">check</span>';
+                setTimeout(() => {
+                    sendBtn.innerHTML = '<span class="material-symbols-outlined">send</span>';
+                }, 1000);
+            }
+        });
+
+        // Handle Enter key
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendBtn.click();
+            }
+        });
+
+        // Scroll to bottom on load
+        const container = document.querySelector('main');
+        container.scrollTop = container.scrollHeight;
+    </script>
+</body></html>

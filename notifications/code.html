@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<title>Club Notifications | Udodiri Young Social Club</title>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+                  "on-tertiary-fixed": "#241a00",
+                  "on-primary": "#68000f",
+                  "inverse-surface": "#dae2fd",
+                  "primary-fixed-dim": "#ffb3b0",
+                  "tertiary-fixed": "#ffe088",
+                  "surface": "#0b1326",
+                  "outline": "#aa8987",
+                  "on-tertiary-fixed-variant": "#574500",
+                  "on-secondary-fixed": "#000767",
+                  "on-background": "#dae2fd",
+                  "on-tertiary": "#3c2f00",
+                  "tertiary": "#e9c349",
+                  "on-surface-variant": "#e3bebb",
+                  "on-error-container": "#ffdad6",
+                  "primary": "#ffb3b0",
+                  "error": "#ffb4ab",
+                  "surface-container-highest": "#2d3449",
+                  "surface-container-lowest": "#060e20",
+                  "on-secondary-container": "#a8afff",
+                  "error-container": "#93000a",
+                  "surface-container-high": "#222a3d",
+                  "primary-fixed": "#ffdad8",
+                  "tertiary-fixed-dim": "#e9c349",
+                  "surface-dim": "#0b1326",
+                  "on-tertiary-container": "#4e3d00",
+                  "secondary": "#bdc2ff",
+                  "secondary-fixed-dim": "#bdc2ff",
+                  "on-surface": "#dae2fd",
+                  "tertiary-container": "#cba72f",
+                  "on-primary-fixed": "#410006",
+                  "on-error": "#690005",
+                  "secondary-fixed": "#e0e0ff",
+                  "on-secondary": "#1b247f",
+                  "inverse-on-surface": "#283044",
+                  "background": "#0b1326",
+                  "on-primary-fixed-variant": "#930019",
+                  "surface-container-low": "#131b2e",
+                  "surface-bright": "#31394d",
+                  "surface-variant": "#2d3449",
+                  "inverse-primary": "#b91a2a",
+                  "outline-variant": "#5b403f",
+                  "surface-container": "#171f33",
+                  "primary-container": "#be1e2d",
+                  "on-primary-container": "#ffd3d1",
+                  "secondary-container": "#343d96",
+                  "on-secondary-fixed-variant": "#343d96",
+                  "surface-tint": "#ffb3b0"
+          },
+          "borderRadius": {
+                  "DEFAULT": "0.125rem",
+                  "lg": "0.25rem",
+                  "xl": "0.5rem",
+                  "full": "0.75rem"
+          },
+          "spacing": {
+                  "xl": "64px",
+                  "margin-desktop": "32px",
+                  "xs": "8px",
+                  "lg": "40px",
+                  "sm": "16px",
+                  "gutter": "16px",
+                  "base": "4px",
+                  "md": "24px",
+                  "margin-mobile": "16px"
+          },
+          "fontFamily": {
+                  "body-lg": ["Inter"],
+                  "headline-lg-mobile": ["Inter"],
+                  "title-md": ["Inter"],
+                  "display-lg": ["Inter"],
+                  "label-caps": ["Inter"],
+                  "headline-lg": ["Inter"],
+                  "body-sm": ["Inter"]
+          },
+          "fontSize": {
+                  "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                  "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                  "title-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                  "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                  "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                  "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                  "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      background-color: #0b1326;
+      color: #dae2fd;
+      font-family: 'Inter', sans-serif;
+    }
+    .notification-card {
+      border: 1px solid #1e293b;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .notification-card:hover {
+      background-color: #222a3d;
+      border-color: #5b403f;
+    }
+    .glass-header {
+      backdrop-filter: blur(12px);
+      background-color: rgba(11, 19, 38, 0.8);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex flex-col items-center">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky z-50 glass-header border-b border-outline-variant flex justify-between items-center px-margin-mobile h-16">
+<div class="flex items-center gap-xs cursor-pointer active:opacity-80">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-on-primary-container" style="font-size: 20px;">account_balance</span>
+</div>
+<span class="font-title-md text-title-md font-bold text-primary">Udodiri Young Social Club</span>
+</div>
+<div class="cursor-pointer active:opacity-80 hover:bg-surface-container-high transition-colors p-2 rounded-full">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</div>
+</header>
+<main class="w-full max-w-[1200px] flex-grow px-margin-mobile md:px-margin-desktop py-md">
+<!-- Hero / Title Section -->
+<div class="mb-lg">
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background mb-base">Alerts</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Stay updated with the latest club activities and announcements.</p>
+</div>
+<!-- Filter Pills (Micro-interaction) -->
+<div class="flex gap-xs mb-md overflow-x-auto pb-2 scrollbar-hide">
+<button class="px-md py-xs rounded-full bg-primary-container text-on-primary-container font-label-caps text-label-caps whitespace-nowrap active:scale-95 transition-transform">All</button>
+<button class="px-md py-xs rounded-full bg-surface-container-high text-on-surface-variant font-label-caps text-label-caps whitespace-nowrap hover:bg-surface-bright active:scale-95 transition-transform border border-outline-variant">Urgent</button>
+<button class="px-md py-xs rounded-full bg-surface-container-high text-on-surface-variant font-label-caps text-label-caps whitespace-nowrap hover:bg-surface-bright active:scale-95 transition-transform border border-outline-variant">Payments</button>
+<button class="px-md py-xs rounded-full bg-surface-container-high text-on-surface-variant font-label-caps text-label-caps whitespace-nowrap hover:bg-surface-bright active:scale-95 transition-transform border border-outline-variant">Mentions</button>
+</div>
+<!-- Notifications Feed -->
+<div class="space-y-sm">
+<!-- Meeting Reminder (Urgent) -->
+<div class="notification-card p-md rounded-lg flex gap-md relative overflow-hidden group">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<div class="flex-shrink-0 w-12 h-12 rounded-lg bg-error-container flex items-center justify-center">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">event_busy</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-base">
+<span class="font-label-caps text-label-caps text-primary">MEETING REMINDER (URGENT)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">10m ago</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface mb-xs">Emergency Board Meeting</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-sm">Finalizing the Q4 legacy development plan. Attendance is mandatory for all executive members.</p>
+<div class="flex gap-xs">
+<button class="px-sm py-base rounded bg-primary-container text-on-primary-container font-label-caps text-label-caps hover:brightness-110">RSVP NOW</button>
+<button class="px-sm py-base rounded border border-outline-variant text-on-surface-variant font-label-caps text-label-caps hover:bg-surface-variant">DETAILS</button>
+</div>
+</div>
+</div>
+<!-- Payment Confirmation (Success) -->
+<div class="notification-card p-md rounded-lg flex gap-md group">
+<div class="flex-shrink-0 w-12 h-12 rounded-lg bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-base">
+<span class="font-label-caps text-label-caps text-secondary">PAYMENT CONFIRMATION</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">2h ago</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface mb-xs">Annual Dues Received</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Receipt #2024-0892 has been issued to your primary email address. Thank you for your continued support.</p>
+</div>
+</div>
+<!-- Chat Mention -->
+<div class="notification-card p-md rounded-lg flex gap-md group">
+<div class="flex-shrink-0 w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center">
+<img alt="Member Avatar" class="w-10 h-10 rounded-full object-cover" data-alt="A professional headshot of a mature African male executive with grey-tinged hair, wearing a tailored navy blue suit and a silk tie. The lighting is sophisticated studio-style with soft rim lighting, set against a dark, moody charcoal background that conveys leadership, wisdom, and institutional legacy." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCA32D7AWwtV3fRJYEZLD5PJknQVvhmGgLlOu1j1tSNvTXMkAQwQOA3jhWP3mkqa878AIWqRLhLcfQZ62FkdhxAaXnu4S-cSSKISX989-hllFFE6ies6zDMuSzK4txsKrC9lwGRMHP8Sc4Ca3kP1B1aQ7bqogpyUi1oR-BfVpVqu8WRC58DrHNH8Z-DR3ohzIjwLjEImcsRctsy0e5ByCxB-O-xi6nJToPCxOrND_U4TDzc0t-8UAk-_IqgO1IRzA09hekpiNR9gxlf"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-base">
+<span class="font-label-caps text-label-caps text-on-surface-variant">CHAT MENTION</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">5h ago</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface mb-xs">Chief Okonjo mentioned you</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant italic">"We should definitely ask @Member for their input on the gala venue choice. They have great taste."</p>
+<button class="mt-sm px-sm py-base rounded bg-surface-container-high border border-outline-variant text-on-surface-variant font-label-caps text-label-caps hover:bg-surface-bright">REPLY</button>
+</div>
+</div>
+<!-- New Announcement -->
+<div class="notification-card p-md rounded-lg flex gap-md group">
+<div class="flex-shrink-0 w-12 h-12 rounded-lg bg-tertiary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-tertiary-container" style="font-variation-settings: 'FILL' 1;">campaign</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-base">
+<span class="font-label-caps text-label-caps text-tertiary">NEW ANNOUNCEMENT</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Yesterday</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface mb-xs">The 2024 Gala Theme Unveiled</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md">This year we celebrate "Heritage &amp; Horizons," focusing on our club's history while looking toward the next fifty years of community impact.</p>
+<div class="rounded-lg overflow-hidden border border-outline-variant h-32 md:h-48">
+<img alt="Gala Announcement" class="w-full h-full object-cover" data-alt="A grand ballroom prepared for a high-end social club gala. The room features opulent crystal chandeliers hanging from high ceilings, long banquet tables decorated with deep red floral arrangements and gold accents, and floor-to-ceiling dark wood paneling. The atmospheric lighting is warm and amber, creating a prestigious and exclusive lounge environment for a professional membership club." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9_RyK8P7TtY8Nr2MaM_KIBL4OZoKzN1hgSuf_dLaz9LkhCP6V9uEzwdRFkyybYW7KjVp7ISwIlUzzWDlwCeEJ5Fel2k2rS30V-norRMEbuVPWcyc1yjCpeIf_eBJKjNbyit0FnT1CJUi7xSOePY11qgyBeN95EbTwSMEB8VwqrlZalHHD0EC1qGKnhHMo6oUALfzr6q9vAA7adV0ES2gKCOWz5-IrlKYA6tVpbp3-QTMmrjOmjUZA-DJT7MhhofYWyU8I5KOVq8jg"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Empty State Spacer -->
+<div class="h-xl"></div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 bg-surface-container dark:bg-surface-container-low flex justify-around items-center h-20 px-xs pb-safe border-t border-surface-variant dark:border-outline-variant">
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-transform scale-95 active:scale-90 cursor-pointer">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-caps text-label-caps">Dashboard</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-4 py-1 transition-transform scale-95 active:scale-90 cursor-pointer">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">campaign</span>
+<span class="font-label-caps text-label-caps">Alerts</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-transform scale-95 active:scale-90 cursor-pointer">
+<span class="material-symbols-outlined">chat</span>
+<span class="font-label-caps text-label-caps">Chat</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-transform scale-95 active:scale-90 cursor-pointer">
+<span class="material-symbols-outlined">event</span>
+<span class="font-label-caps text-label-caps">Meetings</span>
+</div>
+</nav>
+<script>
+    // Micro-interaction for filter buttons
+    const filterBtns = document.querySelectorAll('.px-md.py-xs');
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => {
+          b.classList.remove('bg-primary-container', 'text-on-primary-container');
+          b.classList.add('bg-surface-container-high', 'text-on-surface-variant');
+        });
+        btn.classList.add('bg-primary-container', 'text-on-primary-container');
+        btn.classList.remove('bg-surface-container-high', 'text-on-surface-variant');
+      });
+    });
+
+    // Mark as read animation
+    document.querySelectorAll('.notification-card').forEach(card => {
+      card.addEventListener('click', () => {
+        card.querySelector('.absolute.left-0')?.classList.add('opacity-0');
+        card.classList.add('opacity-80');
+      });
+    });
+  </script>
+</body></html>

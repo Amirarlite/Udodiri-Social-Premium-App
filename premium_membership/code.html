@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-on-surface": "#283044",
+                    "tertiary-fixed": "#ffe088",
+                    "on-error-container": "#ffdad6",
+                    "primary-fixed-dim": "#ffb3b0",
+                    "tertiary-container": "#cba72f",
+                    "on-surface-variant": "#e3bebb",
+                    "outline-variant": "#5b403f",
+                    "on-tertiary-container": "#4e3d00",
+                    "on-tertiary-fixed": "#241a00",
+                    "on-primary": "#68000f",
+                    "primary": "#ffb3b0",
+                    "primary-fixed": "#ffdad8",
+                    "surface-container-high": "#222a3d",
+                    "surface-container-low": "#131b2e",
+                    "surface-container-lowest": "#060e20",
+                    "surface-container": "#171f33",
+                    "on-secondary-fixed": "#000767",
+                    "tertiary": "#e9c349",
+                    "error-container": "#93000a",
+                    "surface-tint": "#ffb3b0",
+                    "tertiary-fixed-dim": "#e9c349",
+                    "surface": "#0b1326",
+                    "on-primary-fixed": "#410006",
+                    "surface-container-highest": "#2d3449",
+                    "secondary": "#bdc2ff",
+                    "on-primary-fixed-variant": "#930019",
+                    "surface-dim": "#0b1326",
+                    "secondary-fixed": "#e0e0ff",
+                    "inverse-surface": "#dae2fd",
+                    "on-secondary-container": "#a8afff",
+                    "primary-container": "#be1e2d",
+                    "on-tertiary": "#3c2f00",
+                    "on-secondary": "#1b247f",
+                    "error": "#ffb4ab",
+                    "on-secondary-fixed-variant": "#343d96",
+                    "on-tertiary-fixed-variant": "#574500",
+                    "on-primary-container": "#ffd3d1",
+                    "background": "#0b1326",
+                    "outline": "#aa8987",
+                    "inverse-primary": "#b91a2a",
+                    "on-error": "#690005",
+                    "on-surface": "#dae2fd",
+                    "secondary-fixed-dim": "#bdc2ff",
+                    "on-background": "#dae2fd",
+                    "surface-variant": "#2d3449",
+                    "surface-bright": "#31394d",
+                    "secondary-container": "#343d96"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "margin-mobile": "16px",
+                    "xl": "64px",
+                    "xs": "8px",
+                    "lg": "40px",
+                    "sm": "16px",
+                    "base": "4px",
+                    "md": "24px",
+                    "margin-desktop": "32px"
+            },
+            "fontFamily": {
+                    "title-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-caps": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "body-sm": ["Inter"]
+            },
+            "fontSize": {
+                    "title-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0b1326;
+            color: #dae2fd;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .premium-gradient {
+            background: linear-gradient(135deg, #be1e2d 0%, #68000f 100%);
+        }
+        .glass-card {
+            background: rgba(45, 52, 73, 0.4);
+            backdrop-filter: blur(8px);
+            border: 1px solid #1E293B;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex flex-col items-center">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-margin-mobile h-16 w-full bg-surface dark:bg-surface-dim border-b border-surface-variant dark:border-outline-variant fixed top-0 z-50">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center overflow-hidden">
+<img alt="Club Logo" class="w-full h-full object-cover" data-alt="A sophisticated club logo design featuring minimalist geometric lines and deep heritage red tones, set against a dark navy textured background. The aesthetic is corporate and prestigious, reflecting a high-end social club identity with modern professionalism and clean typography. Soft professional lighting enhances the premium feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCh2BWE5eyNnWZ60ByIID4jdtILHBNFJFkTSrqr2y5T7kgj1gCcfZqdtZUP1N15bFHvzhcoyS1YZj5pbNnam2FjZ6-lvCsyLojfQqEQHU9HmJla4RbViaOE-Qv15qUgHBXTfTmLhyaohcj6RKVE8VNLd-9bhith_jVOcUenhxuYZm9oZIor-1uH8L6g3J2Lm8IqyulZfJA5RRs4wTpIxG_-ncuoEc-3Z6BwISgbWIjQUwDq5mx_sJBztAp6zO1TDrSUNKTonygKrzdS"/>
+</div>
+<span class="font-title-md text-title-md font-bold text-primary">Udodiri Young Social Club</span>
+</div>
+<div class="cursor-pointer active:opacity-80 hover:bg-surface-container-high transition-colors p-2 rounded-full">
+<span class="material-symbols-outlined text-primary" data-icon="notifications">notifications</span>
+</div>
+</header>
+<main class="w-full max-w-[1200px] mt-20 mb-24 px-margin-mobile md:px-margin-desktop flex flex-col gap-md">
+<!-- Current Status Section -->
+<section class="w-full">
+<div class="glass-card rounded-xl p-md flex flex-col md:flex-row justify-between items-start md:items-center gap-sm">
+<div>
+<h2 class="font-label-caps text-label-caps text-on-surface-variant mb-base">CURRENT PLAN</h2>
+<p class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-on-surface">Standard Member</p>
+</div>
+<div class="bg-surface-container-highest px-md py-xs rounded-full border border-outline-variant">
+<span class="font-label-caps text-label-caps text-on-surface">FREE ACCESS</span>
+</div>
+</div>
+</section>
+<!-- Bento Grid Benefits -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-md">
+<!-- Hero Premium Card -->
+<div class="md:col-span-8 premium-gradient rounded-xl p-lg flex flex-col justify-between min-h-[320px] relative overflow-hidden">
+<div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+<div class="z-10">
+<h1 class="font-display-lg text-display-lg text-on-primary-container mb-xs">Unlock Legacy.</h1>
+<p class="font-body-lg text-body-lg text-on-primary-container/80 max-w-md">Gain access to the full Udodiri experience with exclusive perks designed for our most distinguished members.</p>
+</div>
+<div class="z-10 flex flex-wrap gap-sm mt-md">
+<div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-md py-xs flex items-center gap-xs">
+<span class="material-symbols-outlined text-on-primary-container" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="font-label-caps text-label-caps text-on-primary-container">PREMIUM BADGE</span>
+</div>
+<div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-md py-xs flex items-center gap-xs">
+<span class="material-symbols-outlined text-on-primary-container" data-icon="history" style="font-variation-settings: 'FILL' 1;">history</span>
+<span class="font-label-caps text-label-caps text-on-primary-container">EXTENDED ARCHIVE</span>
+</div>
+</div>
+</div>
+<!-- Premium Pricing Card -->
+<div class="md:col-span-4 bg-surface-container-high border border-outline-variant rounded-xl p-md flex flex-col justify-between">
+<div>
+<h3 class="font-title-md text-title-md text-primary mb-base">Premium Tier</h3>
+<div class="flex items-baseline gap-xs mb-md">
+<span class="font-display-lg text-display-lg text-on-surface">₦5,000</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">/ month</span>
+</div>
+<ul class="space-y-sm">
+<li class="flex items-start gap-xs">
+<span class="material-symbols-outlined text-tertiary text-[20px]" data-icon="check_circle">check_circle</span>
+<span class="font-body-sm text-body-sm">Priority Meeting Invites</span>
+</li>
+<li class="flex items-start gap-xs">
+<span class="material-symbols-outlined text-tertiary text-[20px]" data-icon="check_circle">check_circle</span>
+<span class="font-body-sm text-body-sm">Unlimited Chat History</span>
+</li>
+<li class="flex items-start gap-xs">
+<span class="material-symbols-outlined text-tertiary text-[20px]" data-icon="check_circle">check_circle</span>
+<span class="font-body-sm text-body-sm">Exclusive Event Access</span>
+</li>
+</ul>
+</div>
+<button class="w-full mt-lg bg-primary-container hover:bg-primary-container/90 text-on-primary-container py-md rounded-lg font-title-md text-title-md transition-all active:scale-[0.98] shadow-[0_0_20px_rgba(190,30,45,0.3)]">
+                    Upgrade to Premium
+                </button>
+</div>
+</section>
+<!-- Payment Methods & Assurance -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-md items-center py-md">
+<div class="flex flex-col gap-xs">
+<h4 class="font-label-caps text-label-caps text-on-surface-variant">SECURE CHECKOUT BY</h4>
+<div class="flex items-center gap-md opacity-70 grayscale hover:grayscale-0 transition-all">
+<!-- Placeholder Payment Logos -->
+<div class="h-8 w-24 bg-surface-container-highest rounded border border-outline-variant flex items-center justify-center p-xs">
+<span class="font-title-md text-title-md tracking-tighter text-on-surface-variant">Paystack</span>
+</div>
+<div class="h-8 w-24 bg-surface-container-highest rounded border border-outline-variant flex items-center justify-center p-xs">
+<span class="font-title-md text-title-md tracking-tighter text-on-surface-variant">Flutterwave</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-sm bg-surface-container-low p-sm rounded-lg border border-outline-variant">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="lock">lock</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Transactions are encrypted and secured using industry-standard protocols. Cancel your subscription anytime from settings.</p>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="flex justify-around items-center h-20 w-full px-xs pb-safe bg-surface-container dark:bg-surface-container-low border-t border-surface-variant dark:border-outline-variant fixed bottom-0 z-50">
+<!-- Dashboard -->
+<div class="flex flex-col items-center justify-center text-on-surface-variant cursor-pointer scale-95 active:scale-90 transition-transform hover:text-primary">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-caps text-label-caps">Dashboard</span>
+</div>
+<!-- Alerts -->
+<div class="flex flex-col items-center justify-center text-on-surface-variant cursor-pointer scale-95 active:scale-90 transition-transform hover:text-primary">
+<span class="material-symbols-outlined" data-icon="campaign">campaign</span>
+<span class="font-label-caps text-label-caps">Alerts</span>
+</div>
+<!-- Chat -->
+<div class="flex flex-col items-center justify-center text-on-surface-variant cursor-pointer scale-95 active:scale-90 transition-transform hover:text-primary">
+<span class="material-symbols-outlined" data-icon="chat">chat</span>
+<span class="font-label-caps text-label-caps">Chat</span>
+</div>
+<!-- Meetings -->
+<div class="flex flex-col items-center justify-center text-on-surface-variant cursor-pointer scale-95 active:scale-90 transition-transform hover:text-primary">
+<span class="material-symbols-outlined" data-icon="event">event</span>
+<span class="font-label-caps text-label-caps">Meetings</span>
+</div>
+</nav>
+<script>
+        // Simple micro-interaction for the upgrade button
+        const upgradeBtn = document.querySelector('button');
+        if (upgradeBtn) {
+            upgradeBtn.addEventListener('click', () => {
+                const originalText = upgradeBtn.innerText;
+                upgradeBtn.innerText = 'Processing...';
+                upgradeBtn.disabled = true;
+                setTimeout(() => {
+                    upgradeBtn.innerText = originalText;
+                    upgradeBtn.disabled = false;
+                }, 2000);
+            });
+        }
+    </script>
+</body></html>

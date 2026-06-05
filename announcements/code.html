@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Announcements | Udodiri Young Social Club</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0b1326;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #2d3449;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-on-surface": "#283044",
+                    "tertiary-fixed": "#ffe088",
+                    "on-error-container": "#ffdad6",
+                    "primary-fixed-dim": "#ffb3b0",
+                    "tertiary-container": "#cba72f",
+                    "on-surface-variant": "#e3bebb",
+                    "outline-variant": "#5b403f",
+                    "on-tertiary-container": "#4e3d00",
+                    "on-tertiary-fixed": "#241a00",
+                    "on-primary": "#68000f",
+                    "primary": "#ffb3b0",
+                    "primary-fixed": "#ffdad8",
+                    "surface-container-high": "#222a3d",
+                    "surface-container-low": "#131b2e",
+                    "surface-container-lowest": "#060e20",
+                    "surface-container": "#171f33",
+                    "on-secondary-fixed": "#000767",
+                    "tertiary": "#e9c349",
+                    "error-container": "#93000a",
+                    "surface-tint": "#ffb3b0",
+                    "tertiary-fixed-dim": "#e9c349",
+                    "surface": "#0b1326",
+                    "on-primary-fixed": "#410006",
+                    "surface-container-highest": "#2d3449",
+                    "secondary": "#bdc2ff",
+                    "on-primary-fixed-variant": "#930019",
+                    "surface-dim": "#0b1326",
+                    "secondary-fixed": "#e0e0ff",
+                    "inverse-surface": "#dae2fd",
+                    "on-secondary-container": "#a8afff",
+                    "primary-container": "#be1e2d",
+                    "on-tertiary": "#3c2f00",
+                    "on-secondary": "#1b247f",
+                    "error": "#ffb4ab",
+                    "on-secondary-fixed-variant": "#343d96",
+                    "on-tertiary-fixed-variant": "#574500",
+                    "on-primary-container": "#ffd3d1",
+                    "background": "#0b1326",
+                    "outline": "#aa8987",
+                    "inverse-primary": "#b91a2a",
+                    "on-error": "#690005",
+                    "on-surface": "#dae2fd",
+                    "secondary-fixed-dim": "#bdc2ff",
+                    "on-background": "#dae2fd",
+                    "surface-variant": "#2d3449",
+                    "surface-bright": "#31394d",
+                    "secondary-container": "#343d96"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "margin-mobile": "16px",
+                    "xl": "64px",
+                    "xs": "8px",
+                    "lg": "40px",
+                    "sm": "16px",
+                    "base": "4px",
+                    "md": "24px",
+                    "margin-desktop": "32px"
+            },
+            "fontFamily": {
+                    "title-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-caps": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "body-sm": ["Inter"]
+            },
+            "fontSize": {
+                    "title-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-surface-dim text-primary dark:text-primary w-full top-0 border-b border-surface-variant dark:border-outline-variant flex justify-between items-center px-margin-mobile h-16 w-full z-50 sticky">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center overflow-hidden border border-outline-variant">
+<img alt="Club Logo" class="w-8 h-8 opacity-90" data-alt="A refined, minimalist logo for a prestigious social club featuring geometric Nigerian-inspired patterns in a monochrome aesthetic. The design is sleek, professional, and sophisticated, set against a deep navy background that evokes a sense of legacy and high-end community belonging. The lighting is soft and corporate." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHVaYdXD2Ge_jXihf6M_I907BPxxLrwMcHzDEuHikdOed92R8Q1SYPcJtKbJBE1ERUFF6tqKVXqxUeRGHITERdpzTxylYX3DtkmcHPY9GPyF0p3Q5fz8jGy9RNfAxWYYza0eCUhkTVe1ZNLeuCYJ0ufeXLv3tzyxuAsGl2o2qkG-bUVUY9yxCoXwQFvF4HSkeAOVlrqv4DqtkFS9aX5tXr2yQYQIO5_0HnVWxHOllV4OZo6ZXEAkeZ358LZJlIEFN9PZv73annvcfT"/>
+</div>
+<h1 class="font-title-md text-title-md font-bold text-primary">Udodiri Young Social Club</h1>
+</div>
+<button class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-high transition-colors cursor-pointer active:opacity-80 rounded-full" data-icon="notifications">notifications</button>
+</header>
+<main class="flex-grow max-w-[1200px] mx-auto w-full px-margin-mobile md:px-margin-desktop py-md pb-32">
+<!-- Screen Title Section -->
+<div class="mb-lg">
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">Club Announcements</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-base">Stay updated with the latest news and activities from the board.</p>
+</div>
+<!-- Bento Grid Feed -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-md">
+<!-- Featured Announcement -->
+<article class="md:col-span-8 bg-surface-container-low border border-slate-800 rounded-xl p-md flex flex-col justify-between relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-md opacity-20 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-primary text-6xl" data-icon="campaign">campaign</span>
+</div>
+<div class="relative z-10">
+<div class="flex items-center gap-xs mb-sm">
+<span class="bg-primary-container text-on-primary-container font-label-caps text-label-caps px-2 py-0.5 rounded uppercase">Urgent</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">OCT 24, 2023</span>
+</div>
+<h3 class="font-title-md text-title-md text-primary mb-sm">Annual Charity Gala: Final Registration Call</h3>
+<p class="font-body-lg text-body-lg text-on-surface mb-md line-clamp-3 md:line-clamp-none">
+                        Our flagship event is approaching. We require all members to finalize their guest lists by Friday. This year’s theme, "Unity in Progress," celebrates our collective impact on local community development projects.
+                    </p>
+</div>
+<div class="flex items-center justify-between mt-auto pt-md border-t border-slate-800">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-[10px] font-bold">SY</div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">By Secretary</span>
+</div>
+<button class="text-primary font-label-caps text-label-caps hover:underline cursor-pointer">READ MORE</button>
+</div>
+</article>
+<!-- Side Card 1 -->
+<article class="md:col-span-4 bg-surface-container-low border border-slate-800 rounded-xl p-md flex flex-col">
+<div class="font-label-caps text-label-caps text-on-surface-variant mb-xs">OCT 22, 2023</div>
+<h3 class="font-title-md text-title-md text-on-surface mb-xs">New Member Induction</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md flex-grow">Welcoming 12 new professionals into our prestigious circle this month.</p>
+<div class="flex items-center gap-2 mt-md">
+<span class="material-symbols-outlined text-tertiary text-sm" data-icon="person">person</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Membership Chair</span>
+</div>
+</article>
+<!-- Side Card 2 -->
+<article class="md:col-span-4 bg-surface-container-low border border-slate-800 rounded-xl p-md flex flex-col">
+<div class="font-label-caps text-label-caps text-on-surface-variant mb-xs">OCT 20, 2023</div>
+<h3 class="font-title-md text-title-md text-on-surface mb-xs">Quarterly Financial Brief</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md flex-grow">The Q3 financial report is now available for review in the member portal.</p>
+<div class="flex items-center gap-2 mt-md">
+<span class="material-symbols-outlined text-secondary text-sm" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Treasurer</span>
+</div>
+</article>
+<!-- Large Feed Item -->
+<article class="md:col-span-4 bg-surface-container-low border border-slate-800 rounded-xl p-md flex flex-col">
+<div class="font-label-caps text-label-caps text-on-surface-variant mb-xs">OCT 18, 2023</div>
+<h3 class="font-title-md text-title-md text-on-surface mb-xs">Youth Mentorship Drive</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md flex-grow">Sign up to mentor the next generation of leaders. Your experience is their blueprint.</p>
+<div class="flex items-center gap-2 mt-md">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="school">school</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">By Admin</span>
+</div>
+</article>
+<!-- Small Utility Card -->
+<article class="md:col-span-4 bg-primary-container rounded-xl p-md flex flex-col justify-center items-center text-center border border-primary">
+<span class="material-symbols-outlined text-white text-3xl mb-xs" data-icon="event_available">event_available</span>
+<h3 class="font-title-md text-title-md text-white">Next General Meeting</h3>
+<p class="font-body-sm text-body-sm text-white/80">Nov 5, 2023 • 6:00 PM</p>
+<button class="mt-md bg-white text-primary-container font-label-caps text-label-caps px-md py-xs rounded-full hover:bg-slate-100 transition-colors">SET REMINDER</button>
+</article>
+<!-- Bottom Long Card -->
+<article class="md:col-span-12 bg-surface-container-low border border-slate-800 rounded-xl p-md flex flex-col md:flex-row md:items-center gap-md">
+<div class="w-full md:w-32 h-24 rounded-lg bg-surface-container-high overflow-hidden shrink-0">
+<img class="w-full h-full object-cover grayscale opacity-50" data-alt="A high-end corporate boardroom setting with a long polished mahogany table and ergonomic leather chairs. The atmosphere is professional and prestigious, illuminated by soft overhead architectural lighting. The color palette is dominated by deep blues, grays, and metallic accents, conveying a sense of institutional stability and exclusive membership." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvJ9ELYrVt65H1lm960MYuUXffCda932uEZYUAJ3SB4q_xMQ-HEJ7apgFglqy3-XLNZLKLGtnV7Q81ew0avJ1hbn5KWFvvQB56xkjv95lW40UkZykXSK39TLe4h3CoY8IdAkUYcKWGUj7n543Ertg3BEa7QCj-4RhLOXphHdUhx2saE0vUr58DZBmHge8aJox6NLm0pqUDgRPQ2eOx5V9o37OIOWemiVEaO4wgA8QZH-Fe0j8XNjRyakkzCHNWbavVks8IsmDeQgYG"/>
+</div>
+<div class="flex-grow">
+<div class="font-label-caps text-label-caps text-on-surface-variant mb-xs">OCT 15, 2023</div>
+<h3 class="font-title-md text-title-md text-on-surface mb-xs">Revised Club Constitution Approved</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">The board has officially ratified the amendments to Section IV. All members are encouraged to review the updated bylaws.</p>
+</div>
+<div class="shrink-0 flex md:flex-col items-center md:items-end justify-between md:justify-center gap-xs">
+<span class="font-label-caps text-label-caps text-on-surface-variant">Legal Committee</span>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors" data-icon="download">download</button>
+</div>
+</article>
+</div>
+</main>
+<!-- Admin FAB -->
+<button class="fixed right-6 bottom-24 md:bottom-12 w-14 h-14 bg-primary-container text-white rounded-full flex items-center justify-center shadow-[0_4px_12px_rgba(190,30,45,0.4)] hover:scale-105 active:scale-95 transition-all z-[60]">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="bg-surface-container dark:bg-surface-container-low text-primary dark:text-primary fixed bottom-0 w-full z-50 border-t border-surface-variant dark:border-outline-variant flex justify-around items-center h-20 w-full px-xs pb-safe">
+<div class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-4 py-1 scale-95 active:scale-90 transition-transform cursor-pointer">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-caps text-label-caps">Dashboard</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary scale-95 active:scale-90 transition-transform cursor-pointer">
+<span class="material-symbols-outlined" data-icon="campaign">campaign</span>
+<span class="font-label-caps text-label-caps">Alerts</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary scale-95 active:scale-90 transition-transform cursor-pointer relative">
+<span class="material-symbols-outlined" data-icon="chat">chat</span>
+<span class="font-label-caps text-label-caps">Chat</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full"></span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary scale-95 active:scale-90 transition-transform cursor-pointer">
+<span class="material-symbols-outlined" data-icon="event">event</span>
+<span class="font-label-caps text-label-caps">Meetings</span>
+</div>
+</nav>
+<script>
+        // Micro-interactions
+        document.querySelectorAll('article').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.classList.add('shadow-[0_0_20px_rgba(255,179,176,0.05)]');
+                card.style.borderColor = '#ffb3b0';
+                card.style.transition = 'all 0.3s ease';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.classList.remove('shadow-[0_0_20px_rgba(255,179,176,0.05)]');
+                card.style.borderColor = '#1E293B';
+            });
+        });
+
+        // FAB Pulse effect
+        const fab = document.querySelector('button.fixed');
+        setInterval(() => {
+            fab.classList.add('shadow-[0_0_20px_rgba(190,30,45,0.6)]');
+            setTimeout(() => {
+                fab.classList.remove('shadow-[0_0_20px_rgba(190,30,45,0.6)]');
+            }, 1000);
+        }, 3000);
+    </script>
+</body></html>
