@@ -56,6 +56,8 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+@import './designTokens.css';
+
 /* Simple fade‑in for the welcome logo */
 @keyframes logoFadeIn {
   0% { opacity: 0; transform: scale(0.9); }

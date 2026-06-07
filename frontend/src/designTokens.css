@@ -1,0 +1,179 @@
+/*
+ * Design Tokens – extracted from heritage_unity/DESIGN.md
+ * This file defines CSS custom properties for colors, spacing, radius, and typography
+ * used throughout the Udodiri Premium UI.
+ */
+
+/* Colors – Material 3 style (dark mode) */
+:root {
+  /* Primary palette */
+  --color-primary: #ffb3b0;            /* Heritage Red / gold accent */
+  --color-on-primary: #68000f;
+  --color-primary-container: #be1e2d;
+  --color-on-primary-container: #ffd3d1;
+  --color-inverse-primary: #b91a2a;
+
+  /* Secondary palette */
+  --color-secondary: #bdc2ff;
+  --color-on-secondary: #1b247f;
+  --color-secondary-container: #343d96;
+  --color-on-secondary-container: #a8afff;
+
+  /* Tertiary (gold) */
+  --color-tertiary: #e9c349;
+  --color-on-tertiary: #3c2f00;
+  --color-tertiary-container: #cba72f;
+  --color-on-tertiary-container: #4e3d00;
+
+  /* Error */
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+
+  /* Background & Surface */
+  --color-background: #0b1326;
+  --color-on-background: #dae2fd;
+  --color-surface: #0b1326;
+  --color-on-surface: #dae2fd;
+  --color-surface-variant: #2d3449;
+  --color-on-surface-variant: #e3bebb;
+  --color-outline: #aa8987;
+  --color-outline-variant: #5b403f;
+  --color-surface-container-lowest: #060e20;
+  --color-surface-container-low: #131b2e;
+  --color-surface-container: #171f33;
+  --color-surface-container-high: #222a3d;
+  --color-surface-container-highest: #2d3449;
+  --color-inverse-surface: #dae2fd;
+  --color-inverse-on-surface: #283044;
+
+  /* Fixed palette (copy of primary) */
+  --color-primary-fixed: #ffdad8;
+  --color-primary-fixed-dim: #ffb3b0;
+  --color-on-primary-fixed: #410006;
+  --color-on-primary-fixed-variant: #930019;
+  --color-secondary-fixed: #e0e0ff;
+  --color-secondary-fixed-dim: #bdc2ff;
+  --color-on-secondary-fixed: #000767;
+  --color-on-secondary-fixed-variant: #343d96;
+  --color-tertiary-fixed: #ffe088;
+  --color-tertiary-fixed-dim: #e9c349;
+  --color-on-tertiary-fixed: #241a00;
+  --color-on-tertiary-fixed-variant: #574500;
+
+  /* Radius (rounded) */
+  --radius-sm: 0.125rem;
+  --radius-default: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-full: 9999px;
+
+  /* Spacing */
+  --spacing-base: 4px;
+  --spacing-xs: 8px;
+  --spacing-sm: 16px;
+  --spacing-md: 24px;
+  --spacing-lg: 40px;
+  --spacing-xl: 64px;
+  --spacing-gutter: 16px;
+  --spacing-margin-mobile: 16px;
+  --spacing-margin-desktop: 32px;
+}
+
+/* Map legacy CSS custom properties to the new design tokens so existing components
+   continue to work without code changes. This also ensures the premium theme swaps
+   the correct values when the .premium-theme class is applied. */
+.premium-theme {
+  /* Primary shades */
+  --primary: var(--color-primary);
+  --primary-dark: var(--color-primary-container);
+  --on-primary: var(--color-on-primary);
+  --secondary: var(--color-secondary);
+  --secondary-dark: var(--color-secondary-container);
+  --on-secondary: var(--color-on-secondary);
+  /* Background & surface */
+  --bg: var(--color-background);
+  --bg-card: var(--color-surface-container);
+  --bg-input: var(--color-surface-container-low);
+  --text: var(--color-on-background);
+  --text-muted: var(--color-on-surface-variant);
+  --border: var(--color-outline);
+  /* Success / warning / error styling (keep existing) */
+  --success: var(--color-primary-fixed-dim);
+  --warning: var(--color-tertiary);
+}
+
+/* Typography – Inter family */
+/* The following utility classes align with the design system's tokens. */
+.display-lg {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 56px;
+  letter-spacing: -0.02em;
+}
+
+.headline-lg {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 40px;
+  letter-spacing: -0.01em;
+}
+
+.headline-lg-mobile {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+}
+
+.title-md {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+}
+
+.body-lg {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+.body-sm {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.label-caps {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Utility shortcuts */
+.rounded-sm { border-radius: var(--radius-sm); }
+.rounded { border-radius: var(--radius-default); }
+.rounded-md { border-radius: var(--radius-md); }
+.rounded-lg { border-radius: var(--radius-lg); }
+.rounded-xl { border-radius: var(--radius-xl); }
+.rounded-full { border-radius: var(--radius-full); }
+
+.p-xs { padding: var(--spacing-xs); }
+.p-sm { padding: var(--spacing-sm); }
+.p-md { padding: var(--spacing-md); }
+.p-lg { padding: var(--spacing-lg); }
+
+.m-xs { margin: var(--spacing-xs); }
+.m-sm { margin: var(--spacing-sm); }
+.m-md { margin: var(--spacing-md); }
+.m-lg { margin: var(--spacing-lg); }

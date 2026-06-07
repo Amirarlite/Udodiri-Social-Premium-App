@@ -1,0 +1,42 @@
+name: Deploy Udodiri to Cloudflare Workers
+
+# Trigger on pushes to the main branch or any feature branch prefixed with
+# "feature/". Adjust as needed.
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read  # required for actions/checkout
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies (root)
+        run: npm ci
+
+      - name: Build Frontend
+        run: npm run build
+
+      - name: Install Wrangler (Cloudflare CLI)
+        run: npm install -g wrangler
+
+      - name: Deploy to Cloudflare Workers
+        env:
+          # Cloudflare API token and account ID should be stored as repository secrets.
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        # The project's package.json defines a "deploy" script that runs wrangler deploy.
+        run: npm run deploy
+
