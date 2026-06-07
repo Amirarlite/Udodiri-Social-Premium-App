@@ -94,3 +94,50 @@ CREATE TABLE IF NOT EXISTS member_activity (
 );
 
 CREATE INDEX IF NOT EXISTS idx_activity_created ON member_activity(created_at DESC);
+
+-- Notifications table for real-time alerts
+CREATE TABLE IF NOT EXISTS notifications (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  type TEXT NOT NULL, -- 'announcement', 'chat_mention', 'payment', 'meeting'
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  is_read INTEGER DEFAULT 0,
+  related_id TEXT, -- ID of related entity (announcement, chat, etc.)
+  created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_read, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_unread ON notifications(user_id, is_read) WHERE is_read = 0;
+
+-- Chat messages persistence (for Durable Object backup to D1)
+CREATE TABLE IF NOT EXISTS chat_messages (
+  id TEXT PRIMARY KEY,
+  room_id TEXT NOT NULL,
+  sender_id TEXT NOT NULL,
+  sender_name TEXT NOT NULL,
+  text TEXT NOT NULL,
+  timestamp TEXT DEFAULT (datetime('now')),
+  is_broadcast INTEGER DEFAULT 0
+);
+
+-- Table to store likes for announcements. Each record represents a user who liked a specific announcement.
+CREATE TABLE IF NOT EXISTS announcement_likes (
+  id TEXT PRIMARY KEY,
+  announcement_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  created_at TEXT DEFAULT (datetime('now')),
+  UNIQUE (announcement_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_chat_messages_room ON chat_messages(room_id, timestamp);
+
+-- User notification preferences
+CREATE TABLE IF NOT EXISTS notification_preferences (
+  user_id TEXT NOT NULL,
+  announcement_notifications INTEGER DEFAULT 1,
+  chat_notifications INTEGER DEFAULT 1,
+  meeting_notifications INTEGER DEFAULT 1,
+  payment_notifications INTEGER DEFAULT 1,
+  PRIMARY KEY (user_id)
+);

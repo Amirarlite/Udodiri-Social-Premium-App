@@ -83,6 +83,14 @@ async function verifyToken(token: string, secret: string): Promise<JwtPayload | 
   } catch { return null; }
 }
 
+// Create notification in database
+async function createNotification(db: D1Database, userId: string, type: string, title: string, message: string, relatedId?: string) {
+  const id = `notif_${genId()}`;
+  await db.prepare(
+    'INSERT INTO notifications (id, user_id, type, title, message, related_id) VALUES (?, ?, ?, ?, ?, ?)'
+  ).bind(id, userId, type, title, message, relatedId || null).run();
+}
+
 // ---------------------------------------------------------------------------
 // Auth middleware
 // ---------------------------------------------------------------------------
@@ -208,6 +216,14 @@ app.post('/api/announcements', requireAuth, async c => {
     'INSERT INTO member_activity (id, user_id, user_name, action_type, action_text) VALUES (?, ?, ?, ?, ?)'
   ).bind(genId(), user.id, user.name, 'announcement', `Posted: ${title}`).run();
 
+  // Create notifications for all members when broadcast
+  if (is_broadcast) {
+    const members = await c.env.DB.prepare('SELECT id FROM users').all<AuthUser>();
+    for (const member of members.results || []) {
+      await createNotification(c.env.DB, member.id, 'announcement', 'New Announcement', `${user.name} posted: ${title}`, id);
+    }
+  }
+
   return c.json({ message: 'Announcement created', id }, 201);
 });
 
@@ -218,14 +234,44 @@ app.delete('/api/announcements/:id', requireAuth, requireAdmin, async c => {
 });
 
 // ---------------------------------------------------------------------------
+// Notifications
+// ---------------------------------------------------------------------------
+
+app.get('/api/notifications', requireAuth, async c => {
+  const user = (c as any).user as AuthUser;
+  const { results } = await c.env.DB.prepare(
+    'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 50'
+  ).bind(user.id).all();
+  return c.json({ notifications: results || [] });
+});
+
+app.post('/api/notifications/:id/read', requireAuth, async c => {
+  const user = (c as any).user as AuthUser;
+  const id = c.req.param('id');
+  await c.env.DB.prepare(
+    'UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?'
+  ).bind(id, user.id).run();
+  return c.json({ message: 'Marked as read' });
+});
+
+app.post('/api/notifications/read-all', requireAuth, async c => {
+  const user = (c as any).user as AuthUser;
+  await c.env.DB.prepare(
+    'UPDATE notifications SET is_read = 1 WHERE user_id = ?'
+  ).bind(user.id).run();
+  return c.json({ message: 'All marked as read' });
+});
+
+// ---------------------------------------------------------------------------
 // Member Chat (via Durable Objects)
 // ---------------------------------------------------------------------------
 
 app.get('/api/chat/:roomId/messages', async c => {
   const roomId = c.req.param('roomId') || 'default';
-  const id = c.env.CHAT_ROOM.idFromName(roomId);
-  const stub = c.env.CHAT_ROOM.get(id);
-  return stub.fetch(new Request('http://internal/api/messages'));
+  const { results } = await c.env.DB.prepare(
+    'SELECT id, sender_id AS senderId, sender_name AS senderName, text, timestamp, is_broadcast AS isBroadcast FROM chat_messages WHERE room_id = ? ORDER BY timestamp ASC'
+  ).bind(roomId).all();
+  return c.json({ messages: results || [] });
 });
 
 app.post('/api/chat/:roomId/messages', requireAuth, async c => {
@@ -235,9 +281,39 @@ app.post('/api/chat/:roomId/messages', requireAuth, async c => {
   const { text } = body;
   if (!text?.trim()) return c.json({ error: 'Empty message' }, 400);
 
-  const id = c.env.CHAT_ROOM.idFromName(roomId);
-  const stub = c.env.CHAT_ROOM.get(id);
-  const payload = JSON.stringify({ senderId: user.id, senderName: user.name, text: text.trim(), role: user.role });
+  const trimmed = text.trim();
+  const isBroadcast = user.role === 'Executive' || user.role === 'Admin' ? 1 : 0;
+  const msgId = `msg_${genId()}`;
+
+  // Persist the message
+  await c.env.DB.prepare(
+    'INSERT INTO chat_messages (id, room_id, sender_id, sender_name, text, is_broadcast) VALUES (?, ?, ?, ?, ?, ?)'
+  ).bind(msgId, roomId, user.id, user.name, trimmed, isBroadcast).run();
+
+  // Detect @‑mentions and create notifications for each mentioned user.
+  const mentionMatches = trimmed.match(/@([^\s]+)/g);
+  if (mentionMatches && mentionMatches.length) {
+    for (const raw of mentionMatches) {
+      const handle = raw.slice(1);
+      const target = await c.env.DB.prepare(
+        'SELECT id FROM users WHERE lower(name) = lower(?)'
+      ).bind(handle).first<{ id: string }>();
+      if (target && target.id !== user.id) {
+        await createNotification(
+          c.env.DB,
+          target.id,
+          'chat_mention',
+          'You were mentioned',
+          `${user.name} mentioned you in chat`,
+          msgId
+        );
+      }
+    }
+  }
+
+  // Forward to the Durable Object for realtime websocket pushes.
+  const stub = c.env.CHAT_ROOM.get(c.env.CHAT_ROOM.idFromName(roomId));
+  const payload = JSON.stringify({ senderId: user.id, senderName: user.name, text: trimmed, role: user.role });
   return stub.fetch(new Request('http://internal/api/messages', {
     method: 'POST',
     body: payload,
@@ -288,6 +364,14 @@ app.post('/api/meetings', requireAuth, async c => {
   await c.env.DB.prepare(
     'INSERT INTO member_activity (id, user_id, user_name, action_type, action_text) VALUES (?, ?, ?, ?, ?)'
   ).bind(genId(), user.id, user.name, 'meeting', `Created meeting: ${title}`).run();
+
+  // Create notifications for attendees
+  const attendeeIds = JSON.parse(JSON.stringify(attendees)).map((a: any) => a.id || a.userId);
+  for (const attendeeId of attendeeIds) {
+    if (attendeeId && attendeeId !== user.id) {
+      await createNotification(c.env.DB, attendeeId, 'meeting', 'New Meeting', `${user.name} created: ${title}`, id);
+    }
+  }
 
   return c.json({ message: 'Meeting created', id }, 201);
 });
@@ -363,6 +447,11 @@ app.post('/api/financials', requireAuth, requireAdmin, async c => {
     'INSERT INTO financials (id, title, amount, type, user_id, status, date, payment_reference) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
   ).bind(id, title, parseFloat(amount), type, userId || null, 'SUCCESS', now, paymentReference || null).run();
 
+  // Create notification for payment
+  if (userId) {
+    await createNotification(c.env.DB, userId, 'payment', 'Payment Recorded', `${title} - $${parseFloat(amount).toFixed(2)}`, id);
+  }
+
   return c.json({ message: 'Transaction recorded', id }, 201);
 });
 
@@ -426,6 +515,9 @@ app.post('/api/subscriptions/verify', requireAuth, async c => {
   await c.env.DB.prepare(
     'INSERT INTO member_activity (id, user_id, user_name, action_type, action_text) VALUES (?, ?, ?, ?, ?)'
   ).bind(genId(), user.id, user.name, 'subscription', 'Upgraded to Premium').run();
+
+  // Create notification for subscription
+  await createNotification(c.env.DB, user.id, 'payment', 'Subscription Upgraded', 'Welcome to premium membership!', reference);
 
   return c.json({ message: 'Upgraded to premium', subscription: { userId: user.id, tier: 'premium', isActive: true } });
 });

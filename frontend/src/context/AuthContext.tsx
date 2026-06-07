@@ -9,12 +9,24 @@ interface User {
   subscriptionTier: string;
 }
 
+interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  is_read: number;
+  created_at: string;
+}
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  notifications: Notification[];
+  unreadCount: number;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => void;
+  refreshNotifications: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>(null!);
@@ -22,6 +34,8 @@ const AuthContext = createContext<AuthContextType>(null!);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const stored = localStorage.getItem('udodiri_user');
@@ -41,6 +55,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
+  const refreshNotifications = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data } = await api.get('/notifications');
+      setNotifications(data.notifications || []);
+      setUnreadCount((data.notifications || []).filter((n: Notification) => n.is_read === 0).length);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      refreshNotifications();
+      // Poll for new notifications every 30 seconds
+      const interval = setInterval(refreshNotifications, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user, refreshNotifications]);
+
   const login = useCallback(async (email: string, password: string) => {
     const { data } = await api.post('/auth/login', { email, password });
     localStorage.setItem('udodiri_token', data.token);
@@ -57,11 +91,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.removeItem('udodiri_token');
     localStorage.removeItem('udodiri_user');
     setUser(null);
+    setNotifications([]);
+    setUnreadCount(0);
     window.location.href = '/login';
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, notifications, unreadCount, login, register, logout, refreshNotifications }}>
       {children}
     </AuthContext.Provider>
   );

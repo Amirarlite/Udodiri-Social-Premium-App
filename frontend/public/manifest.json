@@ -1,0 +1,22 @@
+{
+  "name": "Udodiri Social Club",
+  "short_name": "Udodiri",
+  "description": "Premium social club management app with real‑time chat, events, and finance tracking.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0b1326",
+  "theme_color": "#ffb3b0",
+  "icons": [
+    {
+      "src": "/assets/udodiri-app-logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/udodiri-app-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './components/Login';
 import Sidebar from './components/Sidebar';
@@ -10,11 +10,25 @@ import Meetings from './screens/Meetings';
 import Calendar from './screens/Calendar';
 import Financials from './screens/Financials';
 import Subscription from './screens/Subscription';
+import Notifications from './screens/Notifications';
+import WelcomeModal from './components/WelcomeModal';
+import Footer from './components/Footer';
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  // Show welcome modal only once after a successful login
+  useEffect(() => {
+    if (user) {
+      const seen = localStorage.getItem('udodiri_welcome_shown');
+      if (!seen) {
+        setShowWelcome(true);
+      }
+    }
+  }, [user]);
 
   if (loading) {
     return (
@@ -36,15 +50,27 @@ const AppContent: React.FC = () => {
       case 'calendar': return <Calendar />;
       case 'financials': return <Financials />;
       case 'subscription': return <Subscription />;
+      case 'notifications': return <Notifications />;
       default: return <Dashboard onNavigate={setCurrentPage} />;
     }
   };
 
+  const handleCloseWelcome = () => {
+    localStorage.setItem('udodiri_welcome_shown', 'true');
+    setShowWelcome(false);
+  };
+
+  const premiumClass = user?.subscriptionTier?.toLowerCase() === 'premium' ? 'premium-theme' : '';
+
   return (
-    <div className="app-layout">
+    <div className={`app-layout ${premiumClass}`}>
+      {showWelcome && <WelcomeModal onClose={handleCloseWelcome} />}
       <button className="mobile-toggle" onClick={() => setMobileOpen(true)}>☰</button>
       <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
-      <main className="main-content">{renderPage()}</main>
+      <main className="main-content">
+        {renderPage()}
+        <Footer />
+      </main>
     </div>
   );
 };
