@@ -14,7 +14,7 @@ export default defineConfig({
         // Cache the built assets for offline use.
         runtimeCaching: [
           {
-            urlPattern: ({ request }) => request.destination === 'document' || request.destination === 'script' || request.destination === 'style' || request.destination === 'image',
+            urlPattern: ({ request }: { request: Request }) => request.destination === 'document' || request.destination === 'script' || request.destination === 'style' || request.destination === 'image',
             handler: 'CacheFirst',
             options: {
               cacheName: 'udodiri-assets',
