@@ -11,7 +11,6 @@ interface SidebarProps {
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
   { id: 'announcements', label: 'Announcements', icon: '📢' },
-  { id: 'notifications', label: 'Notifications', icon: '🔔' },
   { id: 'chat', label: 'Member Chat', icon: '💬' },
   { id: 'activity', label: 'Member Activity', icon: '👥' },
   { id: 'meetings', label: 'Meetings', icon: '📋' },
@@ -29,13 +28,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onNavigate, mobileOpen, 
       <aside className={`sidebar ${mobileOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <img
-            src="/assets/udodiri-app-logo.png"
-            alt="Udodiri logo"
-            className="sidebar-logo"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src =
-                'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%231a73e8%22 width=%22100%22 height=%22100%22 rx=%2250%22/><text x=%2250%22 y=%2262%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2240%22>U</text></svg>';
-            }}
+            src="/udodiri-app-logo.png"
+            alt="Logo"
+            className="sidebar-logo rounded-xl"
+            onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }}
           />
           <h2>Udodiri</h2>
         </div>

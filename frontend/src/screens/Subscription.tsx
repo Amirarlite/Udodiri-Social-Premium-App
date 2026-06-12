@@ -13,7 +13,7 @@ interface SubInfo {
 }
 
 const Subscription: React.FC = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [sub, setSub] = useState<SubInfo['subscription'] | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
@@ -23,173 +23,186 @@ const Subscription: React.FC = () => {
     try {
       const { data } = await api.get('/subscriptions');
       setSub(data.subscription);
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  useEffect(() => { fetchSub(); }, [fetchSub]);
+  useEffect(() => {
+    fetchSub();
+  }, [fetchSub]);
 
   const handleUpgrade = async () => {
     setProcessing(true);
     try {
       const { data } = await api.post('/subscriptions/premium', { paymentGateway: gateway });
+      
+      // Simulate completing checkout: hit verify
       await api.post('/subscriptions/verify', { reference: data.reference, gateway });
-      fetchSub();
-      alert('Upgraded to Premium! 🎉');
+      
+      await fetchSub();
+      await refreshUser(); // Update the top-level user role/tier
+      alert('Upgraded to Premium successfully! 🎉 Enjoy your premium perks.');
     } catch (err: any) {
       alert(err.response?.data?.error || 'Upgrade failed');
-    } finally { setProcessing(false); }
+    } finally {
+      setProcessing(false);
+    }
   };
 
-  if (loading) return <div className="empty-state"><p>Loading...</p></div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  const isPremium = sub?.tier === 'premium' && sub?.isActive;
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* TopAppBar */}
-      <header className="flex justify-between items-center px-margin-mobile h-16 w-full bg-surface dark:bg-surface-dim border-b border-surface-variant dark:border-outline-variant sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center overflow-hidden">
-            <span className="material-symbols-outlined text-on-primary-container" style={{fontSize: '20px'}}>star</span>
-          </div>
-          <span className="font-title-md text-title-md font-bold text-primary">Udodiri Young Social Club</span>
-        </div>
-        <div className="cursor-pointer active:opacity-80 hover:bg-surface-container-high transition-colors p-2 rounded-full">
-          <span className="material-symbols-outlined text-primary">notifications</span>
-        </div>
-      </header>
+    <div className="space-y-8 pb-12">
+      {/* Current Status Section */}
+      <section className="border-b border-outline-variant pb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-on-surface">Premium Membership</h1>
+        <p className="text-sm text-on-surface-variant mt-1.5">Manage your billing and unlock exclusive club benefits.</p>
+      </section>
 
-      <main className="w-full max-w-[1200px] mt-0 mb-24 px-margin-mobile md:px-margin-desktop flex flex-col gap-md mx-auto">
-        {/* Current Status Section */}
-        <section className="w-full">
-          <div className="bg-surface-container-low rounded-xl p-md flex flex-col md:flex-row justify-between items-start md:items-center gap-sm border border-outline-variant hover:border-primary transition-all duration-300">
-            <div>
-              <h2 className="font-label-caps text-label-caps text-on-surface-variant mb-base">CURRENT PLAN</h2>
-              <p className="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-on-surface">
-                {sub?.tier === 'premium' ? 'Premium Member' : 'Standard Member'}
+      {/* Plan Status Banner */}
+      <section>
+        <div className="glass-card rounded-xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 className="text-[10px] font-bold text-on-surface-variant mb-1 uppercase tracking-widest">CURRENT MEMBERSHIP</h2>
+            <p className="text-xl md:text-2xl font-bold text-on-surface">
+              {isPremium ? 'Premium Legacy Access' : 'Standard Social Member'}
+            </p>
+            {isPremium && sub?.end_date && (
+              <p className="text-xs text-on-surface-variant mt-1">
+                Subscription active until {new Date(sub.end_date).toLocaleDateString()}
               </p>
+            )}
+          </div>
+          <div className={`px-4 py-1.5 rounded-full border text-xs font-bold uppercase tracking-wider ${
+            isPremium
+              ? 'bg-secondary-container text-on-secondary-container border-secondary/20 shadow-md'
+              : 'bg-surface-container-highest text-on-surface border-outline-variant'
+          }`}>
+            {isPremium ? '⭐ PREMIUM' : 'FREE ACCESS'}
+          </div>
+        </div>
+      </section>
+
+      {/* Bento Grid Benefits */}
+      <section className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        {/* Hero Premium Card */}
+        <div className="md:col-span-8 premium-gradient rounded-xl p-8 flex flex-col justify-between min-h-[320px] relative overflow-hidden shadow-2xl border border-primary/20">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+          
+          <div className="z-10 space-y-2">
+            <h1 className="text-3xl md:text-4xl font-bold text-on-primary-container tracking-wide">Unlock Legacy.</h1>
+            <p className="text-sm md:text-base text-on-primary-container/80 max-w-md leading-relaxed">
+              Gain access to the full Udodiri experience with exclusive perks designed for our most distinguished members.
+            </p>
+          </div>
+          
+          <div className="z-10 flex flex-wrap gap-2.5 mt-8">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-1.5 flex items-center gap-1.5 shadow-md">
+              <span className="material-symbols-outlined text-sm text-on-primary-container" style={{ fontVariationSettings: "'FILL' 1" }}>
+                verified
+              </span>
+              <span className="text-[10px] font-bold text-on-primary-container uppercase tracking-wider">PREMIUM BADGE</span>
             </div>
-            <div className={`px-md py-xs rounded-full border ${sub?.tier === 'premium' ? 'bg-tertiary text-on-tertiary border-tertiary' : 'bg-surface-container-highest text-on-surface border-outline-variant'}`}>
-              <span className="font-label-caps text-label-caps">{sub?.tier === 'premium' && sub?.isActive ? 'ACTIVE PREMIUM' : 'FREE ACCESS'}</span>
+            
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-1.5 flex items-center gap-1.5 shadow-md">
+              <span className="material-symbols-outlined text-sm text-on-primary-container" style={{ fontVariationSettings: "'FILL' 1" }}>
+                history
+              </span>
+              <span className="text-[10px] font-bold text-on-primary-container uppercase tracking-wider">EXTENDED ARCHIVE</span>
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* Bento Grid Benefits */}
-        <section className="grid grid-cols-1 md:grid-cols-12 gap-md">
-          {/* Hero Premium Card */}
-          <div className="md:col-span-8 bg-gradient-to-br from-primary-container to-primary/80 rounded-xl p-lg flex flex-col justify-between min-h-[320px] relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl"></div>
-            <div className="z-10">
-              <h1 className="font-display-lg text-display-lg text-on-primary-container mb-xs">Unlock Legacy.</h1>
-              <p className="font-body-lg text-body-lg text-on-primary-container/80 max-w-md">Gain access to the full Udodiri experience with exclusive perks designed for our most distinguished members.</p>
+        {/* Premium Pricing Card */}
+        <div className="md:col-span-4 bg-surface-container border border-slate-800 rounded-xl p-6 flex flex-col justify-between hover:border-primary/50 transition-colors">
+          <div>
+            <h3 className="text-base font-bold text-primary mb-1">Premium Tier</h3>
+            
+            <div className="flex items-baseline gap-1.5 mb-6">
+              <span className="text-3xl md:text-4xl font-bold text-on-surface">₦5,000</span>
+              <span className="text-xs text-on-surface-variant font-semibold">/ year</span>
             </div>
-            <div className="z-10 flex flex-wrap gap-sm mt-md">
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-md py-xs flex items-center gap-xs">
-                <span className="material-symbols-outlined text-on-primary-container" style={{fontVariationSettings: "'FILL' 1;"}}>verified</span>
-                <span className="font-label-caps text-label-caps text-on-primary-container">PREMIUM BADGE</span>
-              </div>
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-md py-xs flex items-center gap-xs">
-                <span className="material-symbols-outlined text-on-primary-container" style={{fontVariationSettings: "'FILL' 1;"}}>history</span>
-                <span className="font-label-caps text-label-caps text-on-primary-container">EXTENDED ARCHIVE</span>
-              </div>
-            </div>
+            
+            <ul className="space-y-3">
+              <li className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-tertiary text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                <span className="text-xs font-semibold text-on-surface-variant">Priority Meeting Invites</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-tertiary text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                <span className="text-xs font-semibold text-on-surface-variant">Unlimited Chat History</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-tertiary text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                <span className="text-xs font-semibold text-on-surface-variant">Exclusive Event Access</span>
+              </li>
+            </ul>
           </div>
 
-          {/* Premium Pricing Card */}
-          <div className="md:col-span-4 bg-surface-container-high border border-outline-variant rounded-xl p-md flex flex-col justify-between hover:border-primary transition-all duration-300">
-            <div>
-              <h3 className="font-title-md text-title-md text-primary mb-base">Premium Tier</h3>
-              <div className="flex items-baseline gap-xs mb-md">
-                <span className="font-display-lg text-display-lg text-on-surface">₦5,000</span>
-                <span className="font-body-sm text-body-sm text-on-surface-variant">/ year</span>
-              </div>
-              <ul className="space-y-sm">
-                <li className="flex items-start gap-xs">
-                  <span className="material-symbols-outlined text-tertiary text-[20px]">check_circle</span>
-                  <span className="font-body-sm text-body-sm">Priority Meeting Invites</span>
-                </li>
-                <li className="flex items-start gap-xs">
-                  <span className="material-symbols-outlined text-tertiary text-[20px]">check_circle</span>
-                  <span className="font-body-sm text-body-sm">Unlimited Chat History</span>
-                </li>
-                <li className="flex items-start gap-xs">
-                  <span className="material-symbols-outlined text-tertiary text-[20px]">check_circle</span>
-                  <span className="font-body-sm text-body-sm">Exclusive Event Access</span>
-                </li>
-              </ul>
-            </div>
-            {sub?.tier !== 'premium' ? (
-              <div className="w-full mt-lg">
+          <div className="mt-8 space-y-3">
+            {!isPremium && (
+              <>
                 <select
                   value={gateway}
                   onChange={e => setGateway(e.target.value)}
-                  className="w-full mb-md px-md py-sm rounded-lg bg-surface border border-outline-variant text-on-surface font-body-sm mb-md"
+                  className="w-full bg-surface-container-high border border-outline-variant rounded-lg px-4 py-2 text-xs font-bold text-on-surface focus:border-primary focus:ring-0 outline-none cursor-pointer"
                 >
-                  <option value="paystack">Paystack</option>
-                  <option value="flutterwave">Flutterwave</option>
+                  <option value="paystack">Paystack Checkout</option>
+                  <option value="flutterwave">Flutterwave Checkout</option>
                 </select>
-                <button 
+                
+                <button
                   onClick={handleUpgrade}
                   disabled={processing}
-                  className="w-full bg-primary-container hover:bg-primary-container/90 text-on-primary-container py-md rounded-lg font-title-md text-title-md transition-all active:scale-[0.98] shadow-[0_0_20px_rgba(190,30,45,0.3)] disabled:opacity-50"
+                  className="w-full bg-primary-container hover:bg-on-primary-fixed-variant text-on-primary-container py-3.5 rounded-lg text-sm font-bold uppercase tracking-wider transition-all active:scale-[0.98] shadow-lg shadow-primary-container/20 border border-primary/20"
                 >
-                  {processing ? 'Processing...' : 'Upgrade to Premium'}
+                  {processing ? 'Processing Payment...' : 'Upgrade to Premium'}
                 </button>
-              </div>
-            ) : (
-              <div className="w-full mt-lg">
-                <div className="bg-tertiary/20 border border-tertiary rounded-lg p-md text-center">
-                  <span className="font-label-caps text-label-caps text-tertiary">✓ PREMIUM ACTIVE</span>
-                  {sub.end_date && (
-                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-xs">
-                      Valid until {new Date(sub.end_date).toLocaleDateString()}
-                    </p>
-                  )}
-                </div>
+              </>
+            )}
+            
+            {isPremium && (
+              <div className="bg-secondary-container/10 border border-secondary/20 p-4 rounded-lg text-center">
+                <span className="material-symbols-outlined text-secondary text-2xl mb-1" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
+                <p className="text-xs font-bold text-secondary uppercase tracking-widest">Plan Active</p>
               </div>
             )}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Payment Methods & Assurance */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-md items-center py-md">
-          <div className="flex flex-col gap-xs">
-            <h4 className="font-label-caps text-label-caps text-on-surface-variant">SECURE CHECKOUT BY</h4>
-            <div className="flex items-center gap-md opacity-70 grayscale hover:grayscale-0 transition-all">
-              <div className="h-8 w-24 bg-surface-container-highest rounded border border-outline-variant flex items-center justify-center p-xs">
-                <span className="font-title-md text-title-md tracking-tighter text-on-surface-variant">Paystack</span>
-              </div>
-              <div className="h-8 w-24 bg-surface-container-highest rounded border border-outline-variant flex items-center justify-center p-xs">
-                <span className="font-title-md text-title-md tracking-tighter text-on-surface-variant">Flutterwave</span>
-              </div>
+      {/* Payment Gateways Assurance Footer */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center bg-surface-container border border-slate-800 rounded-xl p-6">
+        <div className="flex flex-col gap-2">
+          <h4 className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">SECURE CHECKOUT BACKED BY</h4>
+          <div className="flex items-center gap-4">
+            <div className="h-9 px-4 bg-surface-container-high rounded border border-outline-variant flex items-center justify-center">
+              <span className="text-xs font-bold tracking-tighter text-on-surface-variant">Paystack</span>
+            </div>
+            <div className="h-9 px-4 bg-surface-container-high rounded border border-outline-variant flex items-center justify-center">
+              <span className="text-xs font-bold tracking-tighter text-on-surface-variant">Flutterwave</span>
             </div>
           </div>
-          <div className="flex items-center gap-sm bg-surface-container-low p-sm rounded-lg border border-outline-variant">
-            <span className="material-symbols-outlined text-on-surface-variant">lock</span>
-            <p className="font-body-sm text-body-sm text-on-surface-variant">Transactions are encrypted and secured using industry-standard protocols. Cancel anytime from settings.</p>
-          </div>
-        </section>
-      </main>
-
-      {/* BottomNavBar */}
-      <nav className="flex justify-around items-center h-20 w-full px-xs pb-safe bg-surface-container dark:bg-surface-container-low border-t border-surface-variant dark:border-outline-variant fixed bottom-0 z-50">
-        <div className="flex flex-col items-center justify-center text-on-surface-variant cursor-pointer scale-95 active:scale-90 transition-transform hover:text-primary">
-          <span className="material-symbols-outlined">dashboard</span>
-          <span className="font-label-caps text-label-caps">Dashboard</span>
         </div>
-        <div className="flex flex-col items-center justify-center text-on-surface-variant cursor-pointer scale-95 active:scale-90 transition-transform hover:text-primary">
-          <span className="material-symbols-outlined">campaign</span>
-          <span className="font-label-caps text-label-caps">Alerts</span>
+        
+        <div className="flex items-start gap-3 bg-surface-container-low p-4 rounded-lg border border-outline-variant">
+          <span className="material-symbols-outlined text-on-surface-variant mt-0.5">lock</span>
+          <p className="text-xs text-on-surface-variant leading-relaxed">
+            All transaction tunnels are fully encrypted, tokenized, and secured. Subscriptions can be configured or cancelled anytime from member profiles.
+          </p>
         </div>
-        <div className="flex flex-col items-center justify-center text-on-surface-variant cursor-pointer scale-95 active:scale-90 transition-transform hover:text-primary">
-          <span className="material-symbols-outlined">chat</span>
-          <span className="font-label-caps text-label-caps">Chat</span>
-        </div>
-        <div className="flex flex-col items-center justify-center text-on-surface-variant cursor-pointer scale-95 active:scale-90 transition-transform hover:text-primary">
-          <span className="material-symbols-outlined">event</span>
-          <span className="font-label-caps text-label-caps">Meetings</span>
-        </div>
-      </nav>
+      </section>
     </div>
   );
 };

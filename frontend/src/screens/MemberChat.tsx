@@ -16,45 +16,94 @@ const MemberChat: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'broadcast'>('all');
-  const [ws, setWs] = useState<WebSocket | null>(null);
+  const [wsStatus, setWsStatus] = useState<'connected' | 'connecting' | 'failed'>('connecting');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const wsRef = useRef<WebSocket | null>(null);
   const roomId = 'default';
 
   // Fetch initial messages
-  const storageKey = `udodiri_chat_${roomId}`;
-
-  // Load cached messages from localStorage first (if any)
-  useEffect(() => {
-    const cached = localStorage.getItem(storageKey);
-    if (cached) {
-      try {
-        setMessages(JSON.parse(cached));
-      } catch { /* ignore malformed */ }
-    }
-  }, []);
-
   const fetchMessages = useCallback(async () => {
     try {
       const { data } = await api.get(`/chat/${roomId}/messages`);
-      const msgs = data.messages || [];
-      setMessages(msgs);
-      // Persist to localStorage for offline use
-      localStorage.setItem(storageKey, JSON.stringify(msgs));
-    } catch (err) { console.error(err); }
-  }, [roomId]);
+      setMessages(data.messages || []);
+    } catch (err) {
+      console.error('Failed to fetch messages', err);
+    }
+  }, []);
 
-  // Initial load (cached then fresh)
-  useEffect(() => { fetchMessages(); }, [fetchMessages]);
-
-  // WebSocket connection for real-time updates
-  // Poll for new messages every few seconds and also refetch when online
   useEffect(() => {
-    const interval = setInterval(fetchMessages, 3000);
-    const handleOnline = () => fetchMessages();
-    window.addEventListener('online', handleOnline);
+    fetchMessages();
+  }, [fetchMessages]);
+
+  // WebSocket connection management with polling fallback
+  useEffect(() => {
+    let socket: WebSocket | null = null;
+    let reconnectTimeout: any = null;
+    let fallbackInterval: any = null;
+
+    const connectWS = () => {
+      setWsStatus('connecting');
+      try {
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${wsProtocol}//${window.location.host}/api/chat/${roomId}/connect`;
+        
+        socket = new WebSocket(wsUrl);
+        wsRef.current = socket;
+
+        socket.onopen = () => {
+          setWsStatus('connected');
+          if (fallbackInterval) {
+            clearInterval(fallbackInterval);
+            fallbackInterval = null;
+          }
+        };
+
+        socket.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'message' && data.message) {
+              setMessages(prev => {
+                if (prev.some(m => m.id === data.message.id)) return prev;
+                return [...prev, data.message];
+              });
+            }
+          } catch (e) {
+            console.error('Error parsing WS message', e);
+          }
+        };
+
+        socket.onclose = (e) => {
+          console.log('WS connection closed. Code:', e.code);
+          setWsStatus('connecting');
+          // Try to reconnect in 5s
+          reconnectTimeout = setTimeout(connectWS, 5000);
+          
+          // Trigger polling fallback
+          if (!fallbackInterval) {
+            fallbackInterval = setInterval(fetchMessages, 3000);
+          }
+        };
+
+        socket.onerror = (err) => {
+          console.error('WS socket error:', err);
+          setWsStatus('failed');
+          socket?.close();
+        };
+      } catch (err) {
+        console.error('Failed to initialize WebSocket', err);
+        setWsStatus('failed');
+        if (!fallbackInterval) {
+          fallbackInterval = setInterval(fetchMessages, 3000);
+        }
+      }
+    };
+
+    connectWS();
+
     return () => {
-      clearInterval(interval);
-      window.removeEventListener('online', handleOnline);
+      if (socket) socket.close();
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
+      if (fallbackInterval) clearInterval(fallbackInterval);
     };
   }, [fetchMessages]);
 
@@ -66,130 +115,166 @@ const MemberChat: React.FC = () => {
 
   const handleSend = async () => {
     if (!inputText.trim()) return;
-    try {
-      const { data } = await api.post(`/chat/${roomId}/messages`, { text: inputText.trim() });
-      if (data.message) {
-        setMessages(prev => [...prev, data.message]);
+    const msgText = inputText.trim();
+    setInputText('');
+
+    // If WebSocket is connected, send message through it
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      const payload = {
+        type: 'message',
+        senderId: user?.id || 'anonymous',
+        senderName: user?.name || 'Unknown',
+        text: msgText,
+        isBroadcast: user?.role === 'Executive' || user?.role === 'Admin'
+      };
+      wsRef.current.send(JSON.stringify(payload));
+    } else {
+      // Fallback: Send via POST API
+      try {
+        const { data } = await api.post(`/chat/${roomId}/messages`, { text: msgText });
+        if (data.message) {
+          setMessages(prev => {
+            if (prev.some(m => m.id === data.message.id)) return prev;
+            return [...prev, data.message];
+          });
+        }
+      } catch (err: any) {
+        alert(err.response?.data?.error || 'Failed to send message');
       }
-      setInputText('');
-    } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to send');
     }
   };
 
   const handleKey = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
   const filtered = messages.filter(m => activeTab === 'broadcast' ? m.isBroadcast : true);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="flex justify-between items-center px-4 h-16 w-full bg-surface dark:bg-surface-dim border-b border-surface-variant dark:border-outline-variant shrink-0 z-50">
+    <div className="flex flex-col h-[calc(100vh-220px)] max-w-[800px] mx-auto bg-surface-container border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+      {/* Chat Header */}
+      <div className="bg-surface border-b border-outline-variant p-4 flex justify-between items-center px-6 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full overflow-hidden border border-outline-variant">
-            <img 
-              alt="Club Logo" 
-              className="w-full h-full object-cover" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRbFVy5HEUfW-W3DJXDyepgDkJTYO5zg_RBV9QbRRXYs4ekl3or4bVwsxD4JEomyWBj5DrvfHd9bsi5IwyHvr8R7Z_VzlPt2EnQYNuC1-Nq88--xl-9AcdevvU8xqj3kq883D3sYALuMav8v0PYNWwS7lmBrsfSh9RlnEfd63yIktDyeTI2gtdNLrIkD27WybhVbu5J-d0WbECYA6ol4T6thSCHTktKmJPKFWjUPjAbgr7Ho4B-K-Adwq6xsp9uOsS2XAc0s9tSQ6G" 
+          <div className="w-10 h-10 rounded-xl bg-surface flex items-center justify-center overflow-hidden border border-outline-variant">
+            <img
+              src="/udodiri-app-logo.png"
+              alt="Udodiri App Logo"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/logo.png';
+              }}
             />
           </div>
           <div>
-            <h1 className="font-title-md text-title-md font-bold text-primary">Udodiri Young Social Club</h1>
-            <div className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-tertiary"></span>
-              <span className="font-label-caps text-label-caps text-on-surface-variant">14 Members Online</span>
-            </div>
-          </div>
-        </div>
-        <div className="cursor-pointer active:opacity-80 hover:bg-surface-container-high transition-colors p-2 rounded-full">
-          <span className="material-symbols-outlined text-primary" data-icon="notifications">notifications</span>
-        </div>
-      </header>
-
-      {/* Main Chat Canvas */}
-      <main className="flex-1 overflow-y-auto chat-container flex flex-col px-4 py-3 space-y-3">
-        {/* Date Divider */}
-        <div className="flex justify-center my-2">
-          <span className="bg-surface-container text-on-surface-variant font-label-caps text-label-caps px-4 py-1 border border-outline-variant rounded-full">TODAY</span>
-        </div>
-
-        {/* Messages */}
-        {filtered.length === 0 && (
-          <div className="empty-state text-center padding-4">
-            <div className="icon text-4xl mb-2">💬</div>
-            <p className="text-on-surface-variant">No messages yet. Say hello to the brotherhood!</p>
-          </div>
-        )}
-        
-        {filtered.map(msg => (
-          <div key={msg.id} className={`flex items-end gap-2 max-w-[85%] ${msg.senderId === user?.id ? 'ml-auto flex-row-reverse gap-2' : ''}`}>
-            <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-outline-variant">
-              <img 
-                alt="Member Avatar" 
-                className="w-full h-full object-cover" 
-                src="https://via.placeholder.com/32" 
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="font-label-caps text-label-caps text-on-surface-variant ml-1">{msg.senderName}</span>
-              <div className={`p-3 rounded-xl border border-outline-variant ${msg.senderId === user?.id ? 'bg-primary-container text-on-primary-container rounded-br-none' : 'bg-secondary-container text-on-secondary-container rounded-bl-none'}`}>
-                <p className="font-body-sm text-body-sm">{msg.text}</p>
-              </div>
-              <span className="text-[10px] text-on-surface-variant ml-1">
-                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            <h2 className="text-sm font-bold text-on-surface">Member Communication</h2>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className={`w-2 h-2 rounded-full ${
+                wsStatus === 'connected' ? 'bg-secondary' : wsStatus === 'connecting' ? 'bg-tertiary' : 'bg-red-500'
+              }`}></span>
+              <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">
+                {wsStatus === 'connected' ? 'Real-time Connected' : wsStatus === 'connecting' ? 'Connecting...' : 'Offline (Polling)'}
               </span>
             </div>
           </div>
-        ))}
+        </div>
+        <span className="bg-surface-container-high border border-outline-variant px-3 py-1 rounded-full text-[10px] font-bold text-primary tracking-widest uppercase">
+          ID: {user?.id?.slice(-6) || '...'}
+        </span>
+      </div>
 
-        <div ref={scrollRef} className="h-20 shrink-0"></div>
-      </main>
+      {/* Tabs */}
+      <div className="flex bg-surface-container-low border-b border-outline-variant p-1.5 gap-2 shrink-0">
+        <button
+          onClick={() => setActiveTab('all')}
+          className={`flex-1 py-2 text-center rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+            activeTab === 'all' ? 'bg-primary text-on-primary' : 'text-on-surface-variant hover:bg-surface-container-high'
+          }`}
+        >
+          All Messages
+        </button>
+        <button
+          onClick={() => setActiveTab('broadcast')}
+          className={`flex-1 py-2 text-center rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+            activeTab === 'broadcast' ? 'bg-primary text-on-primary' : 'text-on-surface-variant hover:bg-surface-container-high'
+          }`}
+        >
+          Broadcasts Only
+        </button>
+      </div>
 
-      {/* Sticky Chat Input */}
-      <section className="sticky bottom-20 w-full px-4 pb-3 z-40">
-        <div className="bg-surface-container-highest border border-outline-variant rounded-full p-1 flex items-center shadow-2xl">
-          <button className="p-2 text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center">
-            <span className="material-symbols-outlined" data-icon="add_circle">add_circle</span>
-          </button>
-          <input
-            type="text"
-            value={inputText}
-            onChange={e => setInputText(e.target.value)}
-            onKeyDown={handleKey}
-            placeholder="Type your message..."
-            className="flex-1 bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-on-surface-variant/50 font-body-sm px-2"
-          />
-          <button 
-            className="bg-primary text-on-primary w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-90 hover:brightness-110 disabled:opacity-50"
-            onClick={handleSend}
-            disabled={!inputText.trim()}
-          >
-            <span className="material-symbols-outlined" data-icon="send">send</span>
-          </button>
-        </div>
-      </section>
+      {/* Messages Window */}
+      <div className="flex-grow overflow-y-auto p-4 md:p-6 space-y-4 custom-scrollbar bg-background" ref={scrollRef}>
+        {filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-on-surface-variant opacity-60">
+            <span className="material-symbols-outlined text-5xl mb-2 text-primary">chat_bubble</span>
+            <p className="text-sm font-medium">No messages yet. Greet the brotherhood!</p>
+          </div>
+        ) : (
+          filtered.map((msg, idx) => {
+            const isMe = msg.senderId === user?.id;
+            const isUrgent = msg.isBroadcast;
 
-      {/* Bottom NavBar */}
-      <nav className="fixed bottom-0 w-full z-50 bg-surface-container dark:bg-surface-container-low flex justify-around items-center h-20 px-1 pb-safe border-t border-surface-variant dark:border-outline-variant">
-        <div className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-transform scale-95 active:scale-90 cursor-pointer">
-          <span className="material-symbols-outlined">dashboard</span>
-          <span className="font-label-caps text-label-caps mt-0.5">Dashboard</span>
-        </div>
-        <div className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-transform scale-95 active:scale-90 cursor-pointer">
-          <span className="material-symbols-outlined">campaign</span>
-          <span className="font-label-caps text-label-caps mt-0.5">Alerts</span>
-        </div>
-        <div className="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-4 py-1 scale-95 transition-transform active:scale-90 cursor-pointer">
-          <span className="material-symbols-outlined" data-icon="chat">chat</span>
-          <span className="font-label-caps text-label-caps">Chat</span>
-        </div>
-        <div className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-transform scale-95 active:scale-90 cursor-pointer">
-          <span className="material-symbols-outlined">event</span>
-          <span className="font-label-caps text-label-caps mt-0.5">Meetings</span>
-        </div>
-      </nav>
+            return (
+              <div
+                key={msg.id || idx}
+                className={`flex flex-col max-w-[85%] ${isMe ? 'ml-auto items-end' : 'mr-auto items-start'}`}
+              >
+                {!isMe && (
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-on-surface-variant mb-1 ml-2">
+                    {msg.senderName}
+                  </span>
+                )}
+                
+                <div
+                  className={`p-3.5 rounded-2xl border text-sm leading-relaxed ${
+                    isMe
+                      ? isUrgent
+                        ? 'bg-gradient-to-tr from-primary-container to-primary/80 border-primary text-white rounded-br-none shadow-lg'
+                        : 'bg-primary text-on-primary border-primary/20 rounded-br-none'
+                      : isUrgent
+                        ? 'bg-gradient-to-tr from-error-container to-primary/25 border-primary text-on-surface rounded-bl-none shadow-md'
+                        : 'bg-surface-container-high border-slate-800 text-on-surface rounded-bl-none'
+                  }`}
+                >
+                  <p>{msg.text}</p>
+                </div>
+                
+                <div className="flex items-center gap-1.5 mt-1 mx-2">
+                  <span className="text-[9px] text-on-surface-variant">
+                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                  {isMe && (
+                    <span className="material-symbols-outlined text-xs text-secondary">
+                      {wsStatus === 'connected' ? 'done_all' : 'done'}
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Input Bar */}
+      <div className="bg-surface border-t border-outline-variant p-3 md:p-4 flex gap-3 items-center shrink-0">
+        <input
+          value={inputText}
+          onChange={e => setInputText(e.target.value)}
+          onKeyDown={handleKey}
+          placeholder="Message the brotherhood..."
+          className="flex-grow bg-surface-container-highest border border-outline-variant rounded-full px-5 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:border-primary focus:ring-0 outline-none"
+        />
+        <button
+          onClick={handleSend}
+          disabled={!inputText.trim()}
+          className="bg-primary hover:brightness-110 text-on-primary w-11 h-11 rounded-full flex items-center justify-center transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shrink-0 shadow-lg shadow-primary/10"
+        >
+          <span className="material-symbols-outlined text-base">send</span>
+        </button>
+      </div>
     </div>
   );
 };

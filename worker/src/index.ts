@@ -1,5 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import type { Context, MiddlewareHandler, Next } from 'hono';
+import type { D1Database, DurableObjectNamespace, DurableObjectState, WebSocketPair } from '@cloudflare/workers-types';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -28,6 +30,12 @@ interface JwtPayload {
   subscriptionTier: string;
   iat: number;
   exp: number;
+}
+
+// Extend Hono context to carry user
+interface AuthContext extends Context {
+  env: Env;
+  user?: AuthUser;
 }
 
 // ---------------------------------------------------------------------------
@@ -75,13 +83,36 @@ async function verifyToken(token: string, secret: string): Promise<JwtPayload | 
   } catch { return null; }
 }
 
-// Create notification in database
-async function createNotification(db: D1Database, userId: string, type: string, title: string, message: string, relatedId?: string) {
-  const id = `notif_${genId()}`;
-  await db.prepare(
-    'INSERT INTO notifications (id, user_id, type, title, message, related_id) VALUES (?, ?, ?, ?, ?, ?)'
-  ).bind(id, userId, type, title, message, relatedId || null).run();
-}
+// ---------------------------------------------------------------------------
+// Auth middleware
+// ---------------------------------------------------------------------------
+
+const requireAuth: MiddlewareHandler<Env> = async (c: Context, next: Next) => {
+  const authHeader = c.req.header('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+  const token = authHeader.slice(7);
+  const secret = c.env.JWT_SECRET || 'dev-secret-change-in-production';
+  const payload = await verifyToken(token, secret);
+  if (!payload) return c.json({ error: 'Invalid token' }, 401);
+
+  const user = await c.env.DB.prepare('SELECT id, email, name, role, subscription_tier FROM users WHERE id = ?')
+    .bind(payload.userId).first<AuthUser>();
+
+  if (!user) return c.json({ error: 'User not found' }, 401);
+
+  (c as any).user = user;
+  await next();
+};
+
+const requireAdmin: MiddlewareHandler<Env> = async (c: Context, next: Next) => {
+  const user = (c as any).user as AuthUser;
+  if (user.role !== 'Admin' && user.role !== 'Executive') {
+    return c.json({ error: 'Forbidden: Admin/Executive access required' }, 403);
+  }
+  await next();
+};
 
 // ---------------------------------------------------------------------------
 // App
@@ -99,7 +130,7 @@ app.use('*', cors({
 // Auth Routes
 // ---------------------------------------------------------------------------
 
-app.post('/api/auth/register', async (c) => {
+app.post('/api/auth/register', async c => {
   const body = await c.req.json();
   const { email, password, name } = body;
   if (!email || !password || !name) return c.json({ error: 'Missing email, password, name' }, 400);
@@ -118,7 +149,7 @@ app.post('/api/auth/register', async (c) => {
   return c.json({ message: 'User registered', userId: id }, 201);
 });
 
-app.post('/api/auth/login', async (c) => {
+app.post('/api/auth/login', async c => {
   const body = await c.req.json();
   const { email, password } = body;
   if (!email || !password) return c.json({ error: 'Missing email, password' }, 400);
@@ -146,50 +177,41 @@ app.post('/api/auth/login', async (c) => {
   return c.json({ message: 'Login successful', token, user });
 });
 
-app.get('/api/auth/me', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-  const token = authHeader.slice(7);
-  const secret = c.env.JWT_SECRET || 'dev-secret-change-in-production';
-  const payload = await verifyToken(token, secret);
-  if (!payload) return c.json({ error: 'Invalid token' }, 401);
-
-  const user = await c.env.DB.prepare('SELECT id, email, name, role, subscription_tier FROM users WHERE id = ?')
-    .bind(payload.userId).first<AuthUser>();
-
-  if (!user) return c.json({ error: 'User not found' }, 401);
-
+app.get('/api/auth/me', requireAuth, async c => {
+  const user = (c as any).user as AuthUser;
   return c.json({ user });
+});
+
+app.post('/api/auth/role', requireAuth, async c => {
+  const user = (c as any).user as AuthUser;
+  const body = await c.req.json();
+  const { role } = body;
+  if (!role || !['Member', 'Executive', 'Admin'].includes(role)) {
+    return c.json({ error: 'Invalid role' }, 400);
+  }
+  await c.env.DB.prepare('UPDATE users SET role = ? WHERE id = ?').bind(role, user.id).run();
+  
+  // Record activity
+  await c.env.DB.prepare(
+    'INSERT INTO member_activity (id, user_id, user_name, action_type, action_text) VALUES (?, ?, ?, ?, ?)'
+  ).bind(genId(), user.id, user.name, 'profile', `Updated role to ${role}`).run();
+  
+  return c.json({ message: `Role updated to ${role}`, role });
 });
 
 // ---------------------------------------------------------------------------
 // Announcements
 // ---------------------------------------------------------------------------
 
-app.get('/api/announcements', async (c) => {
+app.get('/api/announcements', async c => {
   const { results } = await c.env.DB.prepare(
     'SELECT * FROM announcements ORDER BY created_at DESC LIMIT 50'
   ).all();
   return c.json({ announcements: results || [] });
 });
 
-app.post('/api/announcements', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-  const token = authHeader.slice(7);
-  const secret = c.env.JWT_SECRET || 'dev-secret-change-in-production';
-  const payload = await verifyToken(token, secret);
-  if (!payload) return c.json({ error: 'Invalid token' }, 401);
-
-  const user = await c.env.DB.prepare('SELECT id, email, name, role, subscription_tier FROM users WHERE id = ?')
-    .bind(payload.userId).first<AuthUser>();
-
-  if (!user) return c.json({ error: 'User not found' }, 401);
-
+app.post('/api/announcements', requireAuth, async c => {
+  const user = (c as any).user as AuthUser;
   const body = await c.req.json();
   const { title, content, is_broadcast } = body;
   if (!title || !content) return c.json({ error: 'Missing title, content' }, 400);
@@ -203,176 +225,46 @@ app.post('/api/announcements', async (c) => {
     'INSERT INTO member_activity (id, user_id, user_name, action_type, action_text) VALUES (?, ?, ?, ?, ?)'
   ).bind(genId(), user.id, user.name, 'announcement', `Posted: ${title}`).run();
 
-  // Create notifications for all members when broadcast
-  if (is_broadcast) {
-    const members = await c.env.DB.prepare('SELECT id FROM users').all<AuthUser>();
-    for (const member of members.results || []) {
-      await createNotification(c.env.DB, member.id, 'announcement', 'New Announcement', `${user.name} posted: ${title}`, id);
-    }
-  }
-
   return c.json({ message: 'Announcement created', id }, 201);
 });
 
-app.delete('/api/announcements/:id', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-  const token = authHeader.slice(7);
-  const secret = c.env.JWT_SECRET || 'dev-secret-change-in-production';
-  const payload = await verifyToken(token, secret);
-  if (!payload) return c.json({ error: 'Invalid token' }, 401);
-
-  const user = await c.env.DB.prepare('SELECT id, email, name, role, subscription_tier FROM users WHERE id = ?')
-    .bind(payload.userId).first<AuthUser>();
-
-  if (!user) return c.json({ error: 'User not found' }, 401);
-  if (user.role !== 'Admin' && user.role !== 'Executive') {
-    return c.json({ error: 'Forbidden: Admin/Executive access required' }, 403);
-  }
-
+app.delete('/api/announcements/:id', requireAuth, requireAdmin, async c => {
   const id = c.req.param('id');
   await c.env.DB.prepare('DELETE FROM announcements WHERE id = ?').bind(id).run();
   return c.json({ message: 'Deleted' });
 });
 
 // ---------------------------------------------------------------------------
-// Notifications
-// ---------------------------------------------------------------------------
-
-app.get('/api/notifications', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-  const token = authHeader.slice(7);
-  const secret = c.env.JWT_SECRET || 'dev-secret-change-in-production';
-  const payload = await verifyToken(token, secret);
-  if (!payload) return c.json({ error: 'Invalid token' }, 401);
-
-  const user = await c.env.DB.prepare('SELECT id, email, name, role, subscription_tier FROM users WHERE id = ?')
-    .bind(payload.userId).first<AuthUser>();
-
-  if (!user) return c.json({ error: 'User not found' }, 401);
-
-  const { results } = await c.env.DB.prepare(
-    'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 50'
-  ).bind(user.id).all();
-  return c.json({ notifications: results || [] });
-});
-
-app.post('/api/notifications/:id/read', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-  const token = authHeader.slice(7);
-  const secret = c.env.JWT_SECRET || 'dev-secret-change-in-production';
-  const payload = await verifyToken(token, secret);
-  if (!payload) return c.json({ error: 'Invalid token' }, 401);
-
-  const user = await c.env.DB.prepare('SELECT id, email, name, role, subscription_tier FROM users WHERE id = ?')
-    .bind(payload.userId).first<AuthUser>();
-
-  if (!user) return c.json({ error: 'User not found' }, 401);
-
-  const id = c.req.param('id');
-  await c.env.DB.prepare(
-    'UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?'
-  ).bind(id, user.id).run();
-  return c.json({ message: 'Marked as read' });
-});
-
-app.post('/api/notifications/read-all', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-  const token = authHeader.slice(7);
-  const secret = c.env.JWT_SECRET || 'dev-secret-change-in-production';
-  const payload = await verifyToken(token, secret);
-  if (!payload) return c.json({ error: 'Invalid token' }, 401);
-
-  const user = await c.env.DB.prepare('SELECT id, email, name, role, subscription_tier FROM users WHERE id = ?')
-    .bind(payload.userId).first<AuthUser>();
-
-  if (!user) return c.json({ error: 'User not found' }, 401);
-
-  await c.env.DB.prepare(
-    'UPDATE notifications SET is_read = 1 WHERE user_id = ?'
-  ).bind(user.id).run();
-  return c.json({ message: 'All marked as read' });
-});
-
-// ---------------------------------------------------------------------------
 // Member Chat (via Durable Objects)
 // ---------------------------------------------------------------------------
 
-app.get('/api/chat/:roomId/messages', async (c) => {
+app.get('/api/chat/:roomId/messages', async c => {
   const roomId = c.req.param('roomId') || 'default';
-  const { results } = await c.env.DB.prepare(
-    'SELECT id, sender_id AS senderId, sender_name AS senderName, text, timestamp, is_broadcast AS isBroadcast FROM chat_messages WHERE room_id = ? ORDER BY timestamp ASC'
-  ).bind(roomId).all();
-  return c.json({ messages: results || [] });
+  const id = c.env.CHAT_ROOM.idFromName(roomId);
+  const stub = c.env.CHAT_ROOM.get(id);
+  return stub.fetch(new Request('http://internal/api/messages'));
 });
 
-app.post('/api/chat/:roomId/messages', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-  const token = authHeader.slice(7);
-  const secret = c.env.JWT_SECRET || 'dev-secret-change-in-production';
-  const payload = await verifyToken(token, secret);
-  if (!payload) return c.json({ error: 'Invalid token' }, 401);
-
-  const user = await c.env.DB.prepare('SELECT id, email, name, role, subscription_tier FROM users WHERE id = ?')
-    .bind(payload.userId).first<AuthUser>();
-
-  if (!user) return c.json({ error: 'User not found' }, 401);
-
+app.get('/api/chat/:roomId/connect', async c => {
   const roomId = c.req.param('roomId') || 'default';
+  const id = c.env.CHAT_ROOM.idFromName(roomId);
+  const stub = c.env.CHAT_ROOM.get(id);
+  return stub.fetch(c.req.raw);
+});
+
+app.post('/api/chat/:roomId/messages', requireAuth, async c => {
+  const roomId = c.req.param('roomId') || 'default';
+  const user = (c as any).user as AuthUser;
   const body = await c.req.json();
   const { text } = body;
   if (!text?.trim()) return c.json({ error: 'Empty message' }, 400);
 
-  const trimmed = text.trim();
-  const isBroadcast = user.role === 'Executive' || user.role === 'Admin' ? 1 : 0;
-  const msgId = `msg_${genId()}`;
-
-  // Persist the message
-  await c.env.DB.prepare(
-    'INSERT INTO chat_messages (id, room_id, sender_id, sender_name, text, is_broadcast) VALUES (?, ?, ?, ?, ?, ?)'
-  ).bind(msgId, roomId, user.id, user.name, trimmed, isBroadcast).run();
-
-  // Detect @‑mentions and create notifications for each mentioned user.
-  const mentionMatches = trimmed.match(/@([^\s]+)/g);
-  if (mentionMatches && mentionMatches.length) {
-    for (const raw of mentionMatches) {
-      const handle = raw.slice(1);
-      const target = await c.env.DB.prepare(
-        'SELECT id FROM users WHERE lower(name) = lower(?)'
-      ).bind(handle).first<{ id: string }>();
-      if (target && target.id !== user.id) {
-        await createNotification(
-          c.env.DB,
-          target.id,
-          'chat_mention',
-          'You were mentioned',
-          `${user.name} mentioned you in chat`,
-          msgId
-        );
-      }
-    }
-  }
-
-  // Forward to the Durable Object for realtime websocket pushes.
-  const stub = c.env.CHAT_ROOM.get(c.env.CHAT_ROOM.idFromName(roomId));
-  const payload2 = JSON.stringify({ senderId: user.id, senderName: user.name, text: trimmed, role: user.role });
+  const id = c.env.CHAT_ROOM.idFromName(roomId);
+  const stub = c.env.CHAT_ROOM.get(id);
+  const payload = JSON.stringify({ senderId: user.id, senderName: user.name, text: text.trim(), role: user.role });
   return stub.fetch(new Request('http://internal/api/messages', {
     method: 'POST',
-    body: payload2,
+    body: payload,
     headers: { 'Content-Type': 'application/json' },
   }));
 });
@@ -381,7 +273,7 @@ app.post('/api/chat/:roomId/messages', async (c) => {
 // Member Activity
 // ---------------------------------------------------------------------------
 
-app.get('/api/activity', async (c) => {
+app.get('/api/activity', async c => {
   const { results } = await c.env.DB.prepare(
     'SELECT * FROM member_activity ORDER BY created_at DESC LIMIT 100'
   ).all();
@@ -392,7 +284,7 @@ app.get('/api/activity', async (c) => {
 // Meetings
 // ---------------------------------------------------------------------------
 
-app.get('/api/meetings', async (c) => {
+app.get('/api/meetings', async c => {
   const { results } = await c.env.DB.prepare(
     'SELECT * FROM meetings ORDER BY created_at DESC LIMIT 50'
   ).all();
@@ -406,21 +298,8 @@ app.get('/api/meetings', async (c) => {
   return c.json({ meetings });
 });
 
-app.post('/api/meetings', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-  const token = authHeader.slice(7);
-  const secret = c.env.JWT_SECRET || 'dev-secret-change-in-production';
-  const payload = await verifyToken(token, secret);
-  if (!payload) return c.json({ error: 'Invalid token' }, 401);
-
-  const user = await c.env.DB.prepare('SELECT id, email, name, role, subscription_tier FROM users WHERE id = ?')
-    .bind(payload.userId).first<AuthUser>();
-
-  if (!user) return c.json({ error: 'User not found' }, 401);
-
+app.post('/api/meetings', requireAuth, async c => {
+  const user = (c as any).user as AuthUser;
   const body = await c.req.json();
   const { title, attendees, googleDocUrl } = body;
   if (!title || !attendees) return c.json({ error: 'Missing title, attendees' }, 400);
@@ -434,32 +313,10 @@ app.post('/api/meetings', async (c) => {
     'INSERT INTO member_activity (id, user_id, user_name, action_type, action_text) VALUES (?, ?, ?, ?, ?)'
   ).bind(genId(), user.id, user.name, 'meeting', `Created meeting: ${title}`).run();
 
-  // Create notifications for attendees
-  const attendeeIds = JSON.parse(JSON.stringify(attendees)).map((a: any) => a.id || a.userId);
-  for (const attendeeId of attendeeIds) {
-    if (attendeeId && attendeeId !== user.id) {
-      await createNotification(c.env.DB, attendeeId, 'meeting', 'New Meeting', `${user.name} created: ${title}`, id);
-    }
-  }
-
   return c.json({ message: 'Meeting created', id }, 201);
 });
 
-app.post('/api/meetings/:id/action-items', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-  const token = authHeader.slice(7);
-  const secret = c.env.JWT_SECRET || 'dev-secret-change-in-production';
-  const payload = await verifyToken(token, secret);
-  if (!payload) return c.json({ error: 'Invalid token' }, 401);
-
-  const user = await c.env.DB.prepare('SELECT id, email, name, role, subscription_tier FROM users WHERE id = ?')
-    .bind(payload.userId).first<AuthUser>();
-
-  if (!user) return c.json({ error: 'User not found' }, 401);
-
+app.post('/api/meetings/:id/action-items', requireAuth, async c => {
   const meetingId = c.req.param('id');
   const body = await c.req.json();
   const { description, responsiblePerson, dueDate } = body;
@@ -477,28 +334,15 @@ app.post('/api/meetings/:id/action-items', async (c) => {
 // Calendar
 // ---------------------------------------------------------------------------
 
-app.get('/api/calendar', async (c) => {
+app.get('/api/calendar', async c => {
   const { results } = await c.env.DB.prepare(
     'SELECT * FROM calendar_events ORDER BY start_date LIMIT 100'
   ).all();
   return c.json({ events: results || [] });
 });
 
-app.post('/api/calendar', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-  const token = authHeader.slice(7);
-  const secret = c.env.JWT_SECRET || 'dev-secret-change-in-production';
-  const payload = await verifyToken(token, secret);
-  if (!payload) return c.json({ error: 'Invalid token' }, 401);
-
-  const user = await c.env.DB.prepare('SELECT id, email, name, role, subscription_tier FROM users WHERE id = ?')
-    .bind(payload.userId).first<AuthUser>();
-
-  if (!user) return c.json({ error: 'User not found' }, 401);
-
+app.post('/api/calendar', requireAuth, async c => {
+  const user = (c as any).user as AuthUser;
   const body = await c.req.json();
   const { title, startDate, endDate, location, description, attendees } = body;
   if (!title || !startDate || !endDate) return c.json({ error: 'Missing title, startDate, endDate' }, 400);
@@ -515,21 +359,7 @@ app.post('/api/calendar', async (c) => {
   return c.json({ message: 'Event created', id }, 201);
 });
 
-app.delete('/api/calendar/:id', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-  const token = authHeader.slice(7);
-  const secret = c.env.JWT_SECRET || 'dev-secret-change-in-production';
-  const payload = await verifyToken(token, secret);
-  if (!payload) return c.json({ error: 'Invalid token' }, 401);
-
-  const user = await c.env.DB.prepare('SELECT id, email, name, role, subscription_tier FROM users WHERE id = ?')
-    .bind(payload.userId).first<AuthUser>();
-
-  if (!user) return c.json({ error: 'User not found' }, 401);
-
+app.delete('/api/calendar/:id', requireAuth, async c => {
   const id = c.req.param('id');
   await c.env.DB.prepare('DELETE FROM calendar_events WHERE id = ?').bind(id).run();
   return c.json({ message: 'Event deleted' });
@@ -539,48 +369,14 @@ app.delete('/api/calendar/:id', async (c) => {
 // Financials (admin only)
 // ---------------------------------------------------------------------------
 
-app.get('/api/financials', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-  const token = authHeader.slice(7);
-  const secret = c.env.JWT_SECRET || 'dev-secret-change-in-production';
-  const payload = await verifyToken(token, secret);
-  if (!payload) return c.json({ error: 'Invalid token' }, 401);
-
-  const user = await c.env.DB.prepare('SELECT id, email, name, role, subscription_tier FROM users WHERE id = ?')
-    .bind(payload.userId).first<AuthUser>();
-
-  if (!user) return c.json({ error: 'User not found' }, 401);
-  if (user.role !== 'Admin' && user.role !== 'Executive') {
-    return c.json({ error: 'Forbidden: Admin/Executive access required' }, 403);
-  }
-
+app.get('/api/financials', requireAuth, requireAdmin, async c => {
   const { results } = await c.env.DB.prepare(
     'SELECT * FROM financials ORDER BY date DESC, created_at DESC LIMIT 100'
   ).all();
   return c.json({ transactions: results || [] });
 });
 
-app.post('/api/financials', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-  const token = authHeader.slice(7);
-  const secret = c.env.JWT_SECRET || 'dev-secret-change-in-production';
-  const payload = await verifyToken(token, secret);
-  if (!payload) return c.json({ error: 'Invalid token' }, 401);
-
-  const user = await c.env.DB.prepare('SELECT id, email, name, role, subscription_tier FROM users WHERE id = ?')
-    .bind(payload.userId).first<AuthUser>();
-
-  if (!user) return c.json({ error: 'User not found' }, 401);
-  if (user.role !== 'Admin' && user.role !== 'Executive') {
-    return c.json({ error: 'Forbidden: Admin/Executive access required' }, 403);
-  }
-
+app.post('/api/financials', requireAuth, requireAdmin, async c => {
   const body = await c.req.json();
   const { title, amount, type, userId, paymentReference } = body;
   if (!title || !amount || !type) return c.json({ error: 'Missing title, amount, type' }, 400);
@@ -591,11 +387,6 @@ app.post('/api/financials', async (c) => {
     'INSERT INTO financials (id, title, amount, type, user_id, status, date, payment_reference) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
   ).bind(id, title, parseFloat(amount), type, userId || null, 'SUCCESS', now, paymentReference || null).run();
 
-  // Create notification for payment
-  if (userId) {
-    await createNotification(c.env.DB, userId, 'payment', 'Payment Recorded', `${title} - $${parseFloat(amount).toFixed(2)}`, id);
-  }
-
   return c.json({ message: 'Transaction recorded', id }, 201);
 });
 
@@ -603,21 +394,8 @@ app.post('/api/financials', async (c) => {
 // Subscriptions
 // ---------------------------------------------------------------------------
 
-app.get('/api/subscriptions', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-  const token = authHeader.slice(7);
-  const secret = c.env.JWT_SECRET || 'dev-secret-change-in-production';
-  const payload = await verifyToken(token, secret);
-  if (!payload) return c.json({ error: 'Invalid token' }, 401);
-
-  const user = await c.env.DB.prepare('SELECT id, email, name, role, subscription_tier FROM users WHERE id = ?')
-    .bind(payload.userId).first<AuthUser>();
-
-  if (!user) return c.json({ error: 'User not found' }, 401);
-
+app.get('/api/subscriptions', requireAuth, async c => {
+  const user = (c as any).user as AuthUser;
   const sub = await c.env.DB.prepare(
     'SELECT * FROM subscriptions WHERE user_id = ? AND tier = ?'
   ).bind(user.id, 'premium').first() as any;
@@ -630,21 +408,8 @@ app.get('/api/subscriptions', async (c) => {
   return c.json({ subscription: { ...sub, isActive } });
 });
 
-app.post('/api/subscriptions/premium', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-  const token = authHeader.slice(7);
-  const secret = c.env.JWT_SECRET || 'dev-secret-change-in-production';
-  const payload = await verifyToken(token, secret);
-  if (!payload) return c.json({ error: 'Invalid token' }, 401);
-
-  const user = await c.env.DB.prepare('SELECT id, email, name, role, subscription_tier FROM users WHERE id = ?')
-    .bind(payload.userId).first<AuthUser>();
-
-  if (!user) return c.json({ error: 'User not found' }, 401);
-
+app.post('/api/subscriptions/premium', requireAuth, async c => {
+  const user = (c as any).user as AuthUser;
   const body = await c.req.json();
   const { paymentGateway } = body;
   if (!paymentGateway || !['paystack', 'flutterwave'].includes(paymentGateway)) {
@@ -661,21 +426,8 @@ app.post('/api/subscriptions/premium', async (c) => {
   });
 });
 
-app.post('/api/subscriptions/verify', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-  const token = authHeader.slice(7);
-  const secret = c.env.JWT_SECRET || 'dev-secret-change-in-production';
-  const payload = await verifyToken(token, secret);
-  if (!payload) return c.json({ error: 'Invalid token' }, 401);
-
-  const user = await c.env.DB.prepare('SELECT id, email, name, role, subscription_tier FROM users WHERE id = ?')
-    .bind(payload.userId).first<AuthUser>();
-
-  if (!user) return c.json({ error: 'User not found' }, 401);
-
+app.post('/api/subscriptions/verify', requireAuth, async c => {
+  const user = (c as any).user as AuthUser;
   const body = await c.req.json();
   const { reference, gateway } = body;
   if (!reference) return c.json({ error: 'Missing reference' }, 400);
@@ -699,9 +451,6 @@ app.post('/api/subscriptions/verify', async (c) => {
     'INSERT INTO member_activity (id, user_id, user_name, action_type, action_text) VALUES (?, ?, ?, ?, ?)'
   ).bind(genId(), user.id, user.name, 'subscription', 'Upgraded to Premium').run();
 
-  // Create notification for subscription
-  await createNotification(c.env.DB, user.id, 'payment', 'Subscription Upgraded', 'Welcome to premium membership!', reference);
-
   return c.json({ message: 'Upgraded to premium', subscription: { userId: user.id, tier: 'premium', isActive: true } });
 });
 
@@ -709,7 +458,7 @@ app.post('/api/subscriptions/verify', async (c) => {
 // Serve SPA for non-API routes
 // ---------------------------------------------------------------------------
 
-app.notFound(async (c) => {
+app.notFound(async c => {
   return c.env.ASSETS.fetch(c.req.raw);
 });
 
@@ -724,6 +473,10 @@ export class ChatRoom {
 
   constructor(state: DurableObjectState) {
     this.state = state;
+    this.state.blockConcurrencyWhile(async () => {
+      const stored = await this.state.storage.get<Array<any>>('messages');
+      this.messages = stored || [];
+    });
   }
 
   async fetch(request: Request): Promise<Response> {
@@ -745,6 +498,7 @@ export class ChatRoom {
       };
       this.messages.push(msg);
       if (this.messages.length > 500) this.messages = this.messages.slice(-500);
+      await this.state.storage.put('messages', this.messages);
 
       const data = JSON.stringify({ type: 'message', message: msg });
       for (const ws of this.webSockets) {
@@ -765,7 +519,7 @@ export class ChatRoom {
         this.webSockets = this.webSockets.filter(ws => ws !== pair[1]);
       });
 
-      pair[1].addEventListener('message', (e: MessageEvent) => {
+      pair[1].addEventListener('message', async (e: MessageEvent) => {
         try {
           const data = JSON.parse(e.data as string);
           if (data.type === 'message' && data.text) {
@@ -779,6 +533,7 @@ export class ChatRoom {
             };
             this.messages.push(msg);
             if (this.messages.length > 500) this.messages = this.messages.slice(-500);
+            await this.state.storage.put('messages', this.messages);
             for (const ws of this.webSockets) {
               try { ws.send(JSON.stringify({ type: 'message', message: msg })); } catch { /* ignore */ }
             }
