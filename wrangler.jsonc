@@ -1,5 +1,5 @@
 {
-  "name": "udodiri-social-app",
+  "name": "udodiri-social-premium-app",
   "compatibility_date": "2025-01-01",
   "main": "worker/src/index.ts",
   "workers_dev": true,
